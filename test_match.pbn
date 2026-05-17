@@ -1,0 +1,45 @@
+% PBN 2.1
+[Event "Test Event"]
+[Site "Local"]
+[Date "2026.05.11"]
+[Board "1"]
+[West "Player 1"]
+[North "Player 2"]
+[East "Player 3"]
+[South "Player 4"]
+[Vulnerable "None"]
+[Dealer "N"]
+[Deal "N:QJT5432.T.6.QJ82 .J97543.K7532.94 87.A62.QJT4.AT75 AK96.KQ8.A98.K63"]
+[Declarer "S"]
+[Contract "4S"]
+[Result "10"]
+[Play "W"]
+C2 C4 C5 CK
+S6 S2 S3 S7
+SA S3 S4 S8
+SK S4 S5 ST
+S9 SJ D2 H2
+H3 H6 HK HT
+CA C3 C8 C7
+H8 HJ HA D4
+C6 CJ CT HT
+D8 D6 DK DJ
+*
+
+[Event "Test Event"]
+[Site "Local"]
+[Date "2026.05.11"]
+[Board "2"]
+[West "Player 5"]
+[North "Player 6"]
+[East "Player 7"]
+[South "Player 8"]
+[Vulnerable "None"]
+[Dealer "E"]
+[Deal "N:QJT5432.T.6.QJ82 .J97543.K7532.94 87.A62.QJT4.AT75 AK96.KQ8.A98.K63"]
+[Declarer "S"]
+[Contract "4S"]
+[Result "11"]
+[Play "W"]
+C2 C4 C5 CK
+*
