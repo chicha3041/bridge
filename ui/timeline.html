@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-fixed-variant": "#3a485c",
+                    "on-secondary-fixed": "#0d1c2f",
+                    "primary-fixed-dim": "#bec6e0",
+                    "on-secondary-container": "#abb9d2",
+                    "error": "#ffb4ab",
+                    "on-background": "#d4e4fa",
+                    "primary-fixed": "#dae2fd",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "error-container": "#93000a",
+                    "surface-container-highest": "#273647",
+                    "secondary-fixed-dim": "#b9c7e0",
+                    "surface-container-lowest": "#010f1f",
+                    "surface-container-high": "#1c2b3c",
+                    "primary": "#bec6e0",
+                    "on-tertiary-container": "#957d5a",
+                    "tertiary-container": "#231500",
+                    "inverse-primary": "#565e74",
+                    "tertiary-fixed-dim": "#dec29a",
+                    "on-tertiary-fixed-variant": "#574425",
+                    "tertiary-fixed": "#fcdeb5",
+                    "surface-tint": "#bec6e0",
+                    "surface-bright": "#2c3a4c",
+                    "secondary-container": "#3c4a5e",
+                    "on-primary-container": "#798098",
+                    "on-tertiary": "#3e2d11",
+                    "on-error-container": "#ffdad6",
+                    "surface-container-low": "#0d1c2d",
+                    "on-primary-fixed": "#131b2e",
+                    "surface-variant": "#273647",
+                    "on-error": "#690005",
+                    "surface-container": "#122131",
+                    "surface": "#051424",
+                    "outline": "#909097",
+                    "secondary-fixed": "#d5e3fd",
+                    "secondary": "#b9c7e0",
+                    "on-primary": "#283044",
+                    "tertiary": "#dec29a",
+                    "inverse-surface": "#d4e4fa",
+                    "outline-variant": "#45464d",
+                    "on-secondary": "#233144",
+                    "background": "#051424",
+                    "on-surface": "#d4e4fa",
+                    "inverse-on-surface": "#233143",
+                    "primary-container": "#0f172a",
+                    "on-surface-variant": "#c6c6cd",
+                    "surface-dim": "#051424",
+                    "on-tertiary-fixed": "#271901"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "xs": "4px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "base": "4px",
+                    "gutter": "12px",
+                    "sm": "8px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Inter"],
+                    "data-mono": ["Inter"],
+                    "title-sm": ["Inter"],
+                    "label-xs": ["Inter"],
+                    "headline-md": ["Inter"],
+                    "body-md": ["Inter"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .vulnerable-dot { background-color: #ff4d4d; }
+        .non-vulnerable-dot { background-color: #4ade80; }
+        .suit-spades { color: #d4e4fa; }
+        .suit-hearts { color: #ffb4ab; }
+        .suit-diamonds { color: #ffb4ab; }
+        .suit-clubs { color: #d4e4fa; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #051424; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md text-body-md overflow-hidden">
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-0 h-full flex flex-col z-50 py-lg bg-surface-container border-r border-outline-variant w-64">
+<div class="px-md mb-xl">
+<div class="flex items-center gap-sm">
+<div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-xl">link</span>
+</div>
+<div>
+<h1 class="font-title-sm text-title-sm font-bold text-primary tracking-tight">BridgeLab</h1>
+<p class="font-label-xs text-label-xs text-on-surface-variant">Pro Analytics v2.1</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-xs">
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">upload_file</span>
+<span class="font-body-md">PBN Upload</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm bg-secondary-container text-on-secondary-container border-r-4 border-primary transition-all" href="#">
+<span class="material-symbols-outlined">query_stats</span>
+<span class="font-body-md">Match Analysis</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-body-md">Performance</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">summarize</span>
+<span class="font-body-md">Final Reports</span>
+</a>
+</nav>
+<div class="px-md mt-auto">
+<button class="w-full py-sm bg-primary text-on-primary font-bold rounded-lg hover:opacity-90 transition-opacity">
+                New Analysis
+            </button>
+</div>
+</aside>
+<!-- TopAppBar Shell -->
+<header class="flex items-center justify-between w-full pl-64 pr-xl py-sm bg-surface-dim border-b border-outline-variant sticky top-0 z-40">
+<div class="flex items-center gap-lg">
+<h2 class="font-display-lg text-display-lg font-black text-on-surface">Línea de Tiempo</h2>
+<div class="flex gap-md">
+<span class="font-data-mono text-data-mono px-sm py-xs bg-surface-container-highest rounded border border-outline-variant">EQUIPO A: +14.5</span>
+<span class="font-data-mono text-data-mono px-sm py-xs bg-surface-container-highest rounded border border-outline-variant text-on-surface-variant">EQUIPO B: -14.5</span>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="relative">
+<input class="bg-surface-container border-outline-variant rounded-full px-md py-xs text-sm focus:ring-1 focus:ring-primary w-64" placeholder="Buscar mano..." type="text"/>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+</div>
+<div class="flex gap-sm">
+<span class="material-symbols-outlined p-xs hover:bg-surface-container-high rounded-full cursor-pointer">notifications</span>
+<span class="material-symbols-outlined p-xs hover:bg-surface-container-high rounded-full cursor-pointer">settings</span>
+<span class="material-symbols-outlined p-xs hover:bg-surface-container-high rounded-full cursor-pointer">help_outline</span>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-primary">
+<img alt="Analyst Profile" data-alt="A professional portrait of a senior bridge analyst in a sophisticated, dimly lit digital laboratory. The analyst is focused, with the blue light of analytical monitors reflecting off their glasses. The aesthetic is clean and corporate, utilizing a slate and navy color palette that feels authoritative and modern." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZ66UcixDy7ySAD93Rx-7JftmIn4DN2PltHCqF_NlYcI_sUXofhfJnVedDY2sNe41KzHTNKPcUw2zgMP7C4SO7tE2axYxoELMhpCDVwHYwdGliUZq0kb8ljvqSLWXJ4cZrg_mvp7FGPxikmRTpByGi10TJZJ9mLBhIwwBw954TOr6Vz2Ht5B9esz7yu_OnlXP4fQcZU3hIUbV5G3ixjAm5DOVfFwJHAuHRNZ-iku-2K_69vlmubhgO0PR9sW5JdQCun4LjDL6YPaR1"/>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="pl-64 pt-0 h-[calc(100vh-64px)] flex overflow-hidden">
+<!-- Left Section: Timeline & Graph -->
+<section class="flex-1 overflow-y-auto p-lg flex flex-col gap-lg">
+<!-- Graph Overview -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-md h-48 relative overflow-hidden shrink-0">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-title-sm text-title-sm text-primary">Progreso Acumulado de IMPs</h3>
+<div class="flex gap-sm">
+<span class="flex items-center gap-xs font-label-xs text-label-xs text-primary"><span class="w-2 h-2 rounded-full bg-primary"></span> NS</span>
+<span class="flex items-center gap-xs font-label-xs text-label-xs text-on-tertiary-container"><span class="w-2 h-2 rounded-full bg-tertiary"></span> EW</span>
+</div>
+</div>
+<!-- Mock Graph Area -->
+<div class="w-full h-24 relative">
+<svg class="w-full h-full preserve-3d" preserveaspectratio="none" viewbox="0 0 1000 100">
+<!-- Grid Lines -->
+<line stroke="#334155" stroke-dasharray="4" x1="0" x2="1000" y1="50" y2="50"></line>
+<!-- Cumulative IMP Line -->
+<path d="M0,50 L40,48 L80,55 L120,40 L160,35 L200,45 L240,20 L280,25 L320,15 L360,18 L400,30 L440,28 L480,45 L520,60 L560,55 L600,40 L640,30 L680,25 L720,22 L760,15 L800,10 L840,12 L880,5 L920,8 L960,15 L1000,10" fill="none" stroke="#bec6e0" stroke-width="2"></path>
+</svg>
+<!-- Marker for active selection -->
+<div class="absolute left-[36%] top-0 bottom-0 w-px bg-primary opacity-50"></div>
+</div>
+<div class="flex justify-between mt-sm">
+<span class="font-label-xs text-label-xs text-on-surface-variant">B1</span>
+<span class="font-label-xs text-label-xs text-on-surface-variant">B8</span>
+<span class="font-label-xs text-label-xs text-on-surface-variant">B16</span>
+<span class="font-label-xs text-label-xs text-on-surface-variant">B24</span>
+</div>
+</div>
+<!-- Vertical Timeline Container -->
+<div class="flex flex-col gap-sm relative">
+<div class="absolute left-[23px] top-0 bottom-0 w-px bg-outline-variant"></div>
+<!-- Timeline Items -->
+<!-- Board 1 - Technical Excellence -->
+<div class="relative flex items-center gap-md group cursor-pointer">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest border-2 border-primary flex items-center justify-center z-10 shrink-0">
+<span class="font-title-sm text-title-sm text-primary">01</span>
+</div>
+<div class="flex-1 bg-surface-container border border-outline-variant hover:border-primary p-md rounded-lg flex items-center justify-between transition-colors">
+<div class="flex items-center gap-lg">
+<div class="flex flex-col">
+<span class="font-label-xs text-label-xs text-on-surface-variant">CONTRATO</span>
+<span class="font-title-sm text-title-sm">4♠ S =</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-xs text-label-xs text-on-surface-variant">RESULTADO</span>
+<span class="font-title-sm text-title-sm text-secondary">+420</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-xs text-label-xs text-on-surface-variant">IMP SWING</span>
+<span class="font-title-sm text-title-sm text-primary">+11.0</span>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<span class="px-sm py-xs bg-tertiary-container text-tertiary rounded text-[10px] font-bold">EXCELENCIA TÉCNICA</span>
+<span class="material-symbols-outlined text-primary">verified</span>
+</div>
+</div>
+</div>
+<!-- Board 2 -->
+<div class="relative flex items-center gap-md group cursor-pointer opacity-80">
+<div class="w-12 h-12 rounded-full bg-surface-container-high border-2 border-outline-variant flex items-center justify-center z-10 shrink-0">
+<span class="font-title-sm text-title-sm text-on-surface-variant">02</span>
+</div>
+<div class="flex-1 bg-surface-container border border-outline-variant p-md rounded-lg flex items-center justify-between">
+<div class="flex items-center gap-lg">
+<div class="flex flex-col">
+<span class="font-label-xs text-label-xs text-on-surface-variant">CONTRATO</span>
+<span class="font-title-sm text-title-sm">3NT W -1</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-xs text-label-xs text-on-surface-variant">RESULTADO</span>
+<span class="font-title-sm text-title-sm">+50</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-xs text-label-xs text-on-surface-variant">IMP SWING</span>
+<span class="font-title-sm text-title-sm">+2.0</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Board 3 - Critical Moment -->
+<div class="relative flex items-center gap-md group cursor-pointer scale-105 origin-left">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest border-2 border-error flex items-center justify-center z-10 shrink-0">
+<span class="font-title-sm text-title-sm text-error">03</span>
+</div>
+<div class="flex-1 bg-surface-container-high border-2 border-error/50 p-md rounded-lg flex items-center justify-between shadow-lg shadow-error/10">
+<div class="flex items-center gap-lg">
+<div class="flex flex-col">
+<span class="font-label-xs text-label-xs text-on-error-container">CONTRATO</span>
+<span class="font-title-sm text-title-sm">6♥ N -2</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-xs text-label-xs text-on-error-container">RESULTADO</span>
+<span class="font-title-sm text-title-sm text-error">-100</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-xs text-label-xs text-on-error-container">IMP SWING</span>
+<span class="font-title-sm text-title-sm text-error">-14.0</span>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<span class="px-sm py-xs bg-error-container text-error rounded text-[10px] font-bold">MOMENTO CRÍTICO</span>
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+</div>
+</div>
+<!-- Repeat for other boards (compact) -->
+<div class="relative flex items-center gap-md opacity-60">
+<div class="w-12 h-12 rounded-full bg-surface-container border border-outline-variant flex items-center justify-center z-10 shrink-0">
+<span class="font-title-sm text-title-sm text-on-surface-variant">04</span>
+</div>
+<div class="flex-1 h-1 bg-outline-variant/30 rounded-full"></div>
+</div>
+<div class="relative flex items-center gap-md opacity-60">
+<div class="w-12 h-12 rounded-full bg-surface-container border border-outline-variant flex items-center justify-center z-10 shrink-0">
+<span class="font-title-sm text-title-sm text-on-surface-variant">05</span>
+</div>
+<div class="flex-1 h-1 bg-outline-variant/30 rounded-full"></div>
+</div>
+<div class="relative flex items-center gap-md opacity-60">
+<div class="w-12 h-12 rounded-full bg-surface-container border border-outline-variant flex items-center justify-center z-10 shrink-0">
+<span class="font-title-sm text-title-sm text-on-surface-variant">06</span>
+</div>
+<div class="flex-1 h-1 bg-outline-variant/30 rounded-full"></div>
+</div>
+</div>
+</section>
+<!-- Right Section: Detail Panel (Board 1 selected) -->
+<aside class="w-[480px] bg-surface-container-low border-l border-outline-variant overflow-y-auto p-lg flex flex-col gap-lg">
+<header>
+<div class="flex justify-between items-start mb-sm">
+<h3 class="font-headline-md text-headline-md text-on-surface">Detalle de Mano #1</h3>
+<div class="flex items-center gap-xs">
+<div class="vulnerable-dot w-2 h-2 rounded-full"></div>
+<span class="font-label-xs text-label-xs text-on-surface-variant">VUL: NADIE</span>
+</div>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant italic">"Un sacrificio valiente en la Sala Cerrada evitó un desastre mayor."</p>
+</header>
+<!-- Room Comparison -->
+<div class="grid grid-cols-2 gap-md">
+<!-- Open Room -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-md">
+<h4 class="font-label-xs text-label-xs text-primary mb-sm">SALA ABIERTA (NS)</h4>
+<div class="flex justify-between mb-xs">
+<span class="font-data-mono text-data-mono">CONTRATO</span>
+<span class="font-data-mono text-data-mono font-bold">4♠ S =</span>
+</div>
+<div class="flex justify-between mb-sm">
+<span class="font-data-mono text-data-mono">SCORE</span>
+<span class="font-data-mono text-data-mono text-secondary">+420</span>
+</div>
+<div class="h-px bg-outline-variant mb-sm"></div>
+<div class="space-y-xs">
+<div class="flex justify-between text-[11px] opacity-70">
+<span>O</span><span>N</span><span>E</span><span>S</span>
+</div>
+<div class="flex justify-between font-data-mono text-data-mono">
+<span>-</span><span>1♠</span><span>P</span><span>2♠</span>
+</div>
+<div class="flex justify-between font-data-mono text-data-mono">
+<span>P</span><span>4♠</span><span>P</span><span>P</span>
+</div>
+</div>
+</div>
+<!-- Closed Room -->
+<div class="bg-surface-container border border-outline-variant rounded-xl p-md">
+<h4 class="font-label-xs text-label-xs text-tertiary mb-sm">SALA CERRADA (EW)</h4>
+<div class="flex justify-between mb-xs">
+<span class="font-data-mono text-data-mono">CONTRATO</span>
+<span class="font-data-mono text-data-mono font-bold">3♠ S +1</span>
+</div>
+<div class="flex justify-between mb-sm">
+<span class="font-data-mono text-data-mono">SCORE</span>
+<span class="font-data-mono text-data-mono text-on-surface-variant">+170</span>
+</div>
+<div class="h-px bg-outline-variant mb-sm"></div>
+<div class="space-y-xs">
+<div class="flex justify-between text-[11px] opacity-70">
+<span>O</span><span>N</span><span>E</span><span>S</span>
+</div>
+<div class="flex justify-between font-data-mono text-data-mono">
+<span>-</span><span>1♠</span><span>P</span><span>2♠</span>
+</div>
+<div class="flex justify-between font-data-mono text-data-mono">
+<span>P</span><span>3♠</span><span>P</span><span>P</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Hand Diagram -->
+<div class="bg-surface-container-high border border-outline-variant rounded-xl p-lg relative aspect-square">
+<!-- North -->
+<div class="absolute top-md left-1/2 -translate-x-1/2 w-28 text-center">
+<div class="font-label-xs text-label-xs text-on-surface-variant mb-xs">NORTE</div>
+<div class="space-y-0 text-left font-data-mono text-sm">
+<div class="flex gap-xs"><span class="suit-spades">♠</span> AKJ82</div>
+<div class="flex gap-xs"><span class="suit-hearts">♥</span> 74</div>
+<div class="flex gap-xs"><span class="suit-diamonds">♦</span> Q95</div>
+<div class="flex gap-xs"><span class="suit-clubs">♣</span> 1083</div>
+</div>
+</div>
+<!-- West -->
+<div class="absolute top-1/2 left-md -translate-y-1/2 w-28">
+<div class="font-label-xs text-label-xs text-on-surface-variant mb-xs">OESTE</div>
+<div class="space-y-0 text-left font-data-mono text-sm">
+<div class="flex gap-xs"><span class="suit-spades">♠</span> 6</div>
+<div class="flex gap-xs"><span class="suit-hearts">♥</span> KJ95</div>
+<div class="flex gap-xs"><span class="suit-diamonds">♦</span> AKJ8</div>
+<div class="flex gap-xs"><span class="suit-clubs">♣</span> QJ92</div>
+</div>
+</div>
+<!-- East -->
+<div class="absolute top-1/2 right-md -translate-y-1/2 w-28">
+<div class="font-label-xs text-label-xs text-on-surface-variant mb-xs text-right">ESTE</div>
+<div class="space-y-0 text-right font-data-mono text-sm">
+<div class="flex gap-xs justify-end">1094 <span class="suit-spades">♠</span></div>
+<div class="flex gap-xs justify-end">A862 <span class="suit-hearts">♥</span></div>
+<div class="flex gap-xs justify-end">763 <span class="suit-diamonds">♦</span></div>
+<div class="flex gap-xs justify-end">K74 <span class="suit-clubs">♣</span></div>
+</div>
+</div>
+<!-- South -->
+<div class="absolute bottom-md left-1/2 -translate-x-1/2 w-28 text-center">
+<div class="font-label-xs text-label-xs text-primary mb-xs">SUR (CARTER)</div>
+<div class="space-y-0 text-left font-data-mono text-sm">
+<div class="flex gap-xs"><span class="suit-spades">♠</span> Q753</div>
+<div class="flex gap-xs"><span class="suit-hearts">♥</span> Q103</div>
+<div class="flex gap-xs"><span class="suit-diamonds">♦</span> 1042</div>
+<div class="flex gap-xs"><span class="suit-clubs">♣</span> A65</div>
+</div>
+</div>
+<!-- Center: Dealer / Score -->
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-16 h-16 bg-surface-container-lowest border border-outline rounded flex flex-col items-center justify-center">
+<span class="font-label-xs text-[10px] text-on-surface-variant">D: N</span>
+<span class="font-title-sm text-primary">NS</span>
+</div>
+</div>
+</div>
+<!-- Analytical Insight -->
+<div class="mt-auto bg-primary-container border border-primary/20 rounded-xl p-md">
+<div class="flex items-center gap-sm mb-xs">
+<span class="material-symbols-outlined text-primary">insights</span>
+<span class="font-label-xs text-label-xs text-primary">ANÁLISIS DE IA</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface">
+                    La línea de juego de Sur fue óptima. Al evitar el finesse de diamantes y jugar para el split de picas 3-1, aseguró el contrato incluso con una distribución hostil en los palos laterales.
+                </p>
+<div class="mt-md flex gap-md">
+<div class="flex-1">
+<div class="flex justify-between font-label-xs text-label-xs mb-1">
+<span>Precisión Técnica</span>
+<span>98%</span>
+</div>
+<div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[98%]"></div>
+</div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between font-label-xs text-label-xs mb-1">
+<span>Agresión</span>
+<span>42%</span>
+</div>
+<div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[42%]"></div>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</main>
+</body></html>

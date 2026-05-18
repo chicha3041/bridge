@@ -86,11 +86,11 @@ def get_imps(diff):
 
 class BridgeAnalyzer:
     def __init__(self):
-        self.players_data = {} # {name: {'bidding': {b:s}, 'play': {b:s}, 'imps': {b:s}}}
+        self.players_data = {} 
         self.active_boards = set()
-        self.boards_detail = {} # {num: {room: {'meta':{}, 'players':[]}}}
+        self.boards_detail = {} 
         self.teams_roster = {'Equipo A': set(), 'Equipo B': set()}
-        self.match_imps = {'Equipo A': 0, 'Equipo B': 0}
+        self.match_gross_gain = {'Equipo A': 0, 'Equipo B': 0}
 
     def get_player_name(self, board, player_role):
         role_map = {Player.north: "North", Player.east: "East", Player.south: "South", Player.west: "West"}
@@ -104,22 +104,39 @@ class BridgeAnalyzer:
     def analyze_deal(self, board, room_name="Unknown"):
         board_num = board.board_num or 1
         self.active_boards.add(board_num)
-        if board_num not in self.boards_detail: self.boards_detail[board_num] = {}
+        if board_num not in self.boards_detail: 
+            self.boards_detail[board_num] = {'imps_summary': {}}
         
         dd_table = calc_dd_table(board.deal)
         par_list = calc_par(dd_table, board.vul, board.dealer)
         par_score = par_list.score
         
         if not board.contract or board.contract.is_passout():
-            actual_ns, bid_res, play_res, play_err, comm = 0, {p:0 for p in Player}, {p:0 for p in Player}, {p:"" for p in Player}, "Mano de Paso."
+            actual_ns, bid_res, play_res, play_err, comm, bid_math = 0, {p:0 for p in Player}, {p:0 for p in Player}, {p:"" for p in Player}, "Mano de Paso.", {p:"" for p in Player}
         else:
             tricks = board.contract.level + 6 + (board.contract.result or 0)
             is_v = (board.vul == Vul.both) or (board.vul == Vul.ns and board.contract.declarer in [Player.north, Player.south]) or (board.vul == Vul.ew and board.contract.declarer in [Player.east, Player.west])
             sc = calculate_bridge_score(board.contract, tricks, is_v)
             actual_ns = sc if board.contract.declarer in [Player.north, Player.south] else -sc
-            bid_res, play_res, play_err, comm = self._perform_full_analysis(board, dd_table, par_score)
+            bid_res, play_res, play_err, comm, bid_math = self._perform_full_analysis(board, dd_table, par_score)
         
-        room_meta = {'Sala': room_name, 'Subasta Real': ' - '.join(str(bid) for bid in board.auction), 'Contrato Final': str(board.contract) if board.contract else "Paso", 'Puntos Reales (NS)': actual_ns, 'Par Contrato': str(list(par_list)[0]), 'Par Puntos (NS)': par_score, 'Comentarios': comm}
+        room_meta = {
+            'Sala': room_name,
+            'Subasta Real': ' - '.join(str(bid) for bid in board.auction),
+            'Contrato Final': str(board.contract) if board.contract else "Paso",
+            'Puntos Reales (NS)': actual_ns,
+            'Par Contrato': str(list(par_list)[0]),
+            'Par Puntos (NS)': par_score,
+            'Comentarios': comm,
+            'Manos': {
+                'N': str(board.deal.north),
+                'E': str(board.deal.east),
+                'S': str(board.deal.south),
+                'W': str(board.deal.west)
+            },
+            'Vulnerabilidad': str(board.vul).split('.')[-1].lower(),
+            'Dador': str(board.dealer.name).upper()
+        }
         
         players_info = []
         for role in [Player.north, Player.east, Player.south, Player.west]:
@@ -136,28 +153,44 @@ class BridgeAnalyzer:
             bp, pp = bid_res.get(role, 0), play_res.get(role, 0)
             self.players_data[name]['bidding'][board_num] = self.players_data[name]['bidding'].get(board_num, 0) + bp
             self.players_data[name]['play'][board_num] = self.players_data[name]['play'].get(board_num, 0) + pp
-            players_info.append({'Jugador': name, 'Pos': role.name.upper(), 'Subasta': bp, 'Carteo': pp, 'Total Puntos': bp+pp, 'Bazas con Error': play_err.get(role, "")})
+            players_info.append({
+                'Jugador': name, 
+                'Pos': role.name.upper(), 
+                'Subasta': bp, 
+                'Carteo': pp, 
+                'Total': bp+pp, 
+                'Bazas con Error': play_err.get(role, ""),
+                'Subasta_Calculo': bid_math.get(role, ""),
+                'IMPs_Atribuidos': 0 
+            })
+
         self.boards_detail[board_num][room_name] = {'meta': room_meta, 'players': players_info}
 
     def _perform_full_analysis(self, board, dd_table, par_ns):
         contract = board.contract; declarer = contract.declarer; dummy = declarer.partner
         is_v = (board.vul == Vul.both) or (board.vul == Vul.ns and declarer in [Player.north, Player.south]) or (board.vul == Vul.ew and declarer in [Player.east, Player.west])
-        pot_decl = calculate_bridge_score(contract, dd_table[contract.denom, declarer], is_v)
+        dd_tricks = dd_table[contract.denom, declarer]
+        pot_decl = calculate_bridge_score(contract, dd_tricks, is_v)
         pot_ns = pot_decl if declarer in [Player.north, Player.south] else -pot_decl
         diff_ns = pot_ns - par_ns
-        
-        bid_res = {p: 0 for p in Player}; bidders = set(); curr = board.dealer
+        denom_map = {Denom.clubs: "♣", Denom.diamonds: "♦", Denom.hearts: "♥", Denom.spades: "♠", Denom.nt: "NT"}
+        needed = contract.level + 6; res_diff = dd_tricks - needed
+        if res_diff == 0: res_label = "Cumplido (=)"
+        elif res_diff > 0: res_label = f"Cumplido con {res_diff} extra (+{res_diff})"
+        else: res_label = f"Con multa de {abs(res_diff)} ({res_diff})"
+        pot_desc = f"{contract.level}{denom_map.get(contract.denom, '')} {res_label} ({pot_decl} pts)"
+        bid_res, bid_math, bidders, curr = {p:0 for p in Player}, {p:"" for p in Player}, set(), board.dealer
         for bid in board.auction:
-            # Robust participation check: anything not 'P' or 'PASS' is a voice (including X and XX)
-            b_str = str(bid).upper()
-            if b_str not in ['P', 'PASS']: bidders.add(curr)
+            if str(bid).upper() not in ['P', 'PASS']: bidders.add(curr)
             curr = curr.next()
-            
         ns_b, ew_b = [p for p in [Player.north, Player.south] if p in bidders], [p for p in [Player.east, Player.west] if p in bidders]
-        for p in ns_b: bid_res[p] = diff_ns
-        for p in ew_b: bid_res[p] = -diff_ns
-        
-        play_res = {p: 0 for p in Player}; play_err = {p: [] for p in Player}
+        for p in ns_b: 
+            bid_res[p] = diff_ns
+            bid_math[p] = f"Potencial {pot_desc} - Par ({par_ns}) = {diff_ns} pts"
+        for p in ew_b: 
+            bid_res[p] = -diff_ns
+            bid_math[p] = f"Potencial {pot_desc} - Par ({-par_ns}) = {-diff_ns} pts"
+        play_res, play_err = {p:0 for p in Player}, {p:[] for p in Player}
         if board.play:
             d_p = board.deal.copy(); d_p.trump = contract.denom; prev_ns, t_won, c_p = pot_ns, 0, 0
             for card in board.play:
@@ -166,15 +199,13 @@ class BridgeAnalyzer:
                 except: break
                 if len(d_p.curtrick) == 0 and d_p.first in [declarer, dummy]: t_won += 1
                 max_t = self._get_declarer_tricks_evaluation(d_p, declarer, t_won, c_p) if c_p < 52 else t_won
-                now_decl = calculate_bridge_score(contract, max_t, is_v)
-                now_ns = now_decl if declarer in [Player.north, Player.south] else -now_decl
+                now_decl = calculate_bridge_score(contract, max_t, is_v); now_ns = now_decl if declarer in [Player.north, Player.south] else -now_decl
                 delta = now_ns - prev_ns; resp = actor if actor != dummy else declarer
                 if delta != 0:
                     val = delta if actor in [Player.north, Player.south] else -delta
                     play_res[resp] += val; play_err[resp].append(f"B{trick} ({'+' if val > 0 else ''}{val})")
                 prev_ns = now_ns
-        comm = "Subasta competitiva." if len(ns_b)==2 and len(ew_b)==2 else ""
-        return bid_res, play_res, {p: ", ".join(errors) for p, errors in play_err.items()}, comm
+        return bid_res, play_res, {p: ", ".join(errors) for p, errors in play_err.items()}, "", bid_math
 
     def _get_declarer_tricks_evaluation(self, deal, declarer, won, played):
         solutions = solve_board(deal)
@@ -182,6 +213,40 @@ class BridgeAnalyzer:
         best = max(m[1] for m in solutions)
         if deal.curplayer in [declarer, declarer.partner]: return won + best
         return won + (13 - ((played - len(deal.curtrick)) // 4) - best)
+
+    def finalize_analysis(self):
+        self.match_gross_gain = {'Equipo A': 0, 'Equipo B': 0}
+        sorted_boards = sorted(list(self.active_boards))
+        for num in sorted_boards:
+            d_o, d_c = self.boards_detail[num].get('Abierta'), self.boards_detail[num].get('Cerrada')
+            if d_o and d_c:
+                diff = d_o['meta']['Puntos Reales (NS)'] - d_c['meta']['Puntos Reales (NS)']
+                board_imps = get_imps(diff) * (1 if diff >= 0 else -1)
+                if board_imps > 0: self.match_gross_gain['Equipo A'] += board_imps
+                else: self.match_gross_gain['Equipo B'] += abs(board_imps)
+                self.boards_detail[num]['imps_summary'] = {'diff_pts': diff, 'board_imps': board_imps, 'team_a_imps': board_imps, 'team_b_imps': -board_imps}
+                team_imps_map = {'Equipo A': board_imps, 'Equipo B': -board_imps}
+                for tn in ['Equipo A', 'Equipo B']:
+                    team_list = []
+                    for rn in ['Abierta', 'Cerrada']:
+                        if rn not in self.boards_detail[num]: continue
+                        for p in self.boards_detail[num][rn]['players']:
+                            is_a = (rn=='Abierta' and p['Pos'] in ['NORTH','SOUTH']) or (rn=='Cerrada' and p['Pos'] in ['EAST','WEST'])
+                            if (tn=='Equipo A' and is_a) or (tn=='Equipo B' and not is_a): team_list.append(p)
+                    timps = team_imps_map[tn]
+                    orig_pts = [p['Total'] for p in team_list]
+                    if timps > 0 and all(-100 <= v <= 100 for v in orig_pts):
+                        calc_pts = [1, 1, 1, 1]
+                    else:
+                        calc_pts = orig_pts[:]
+                        if timps > 0 and sum(orig_pts) < 0:
+                            offset = abs(min(orig_pts)); calc_pts = [v + offset for v in orig_pts]
+                    sum_calc = sum(calc_pts)
+                    for i, p in enumerate(team_list):
+                        share = calc_pts[i] / sum_calc if sum_calc != 0 else 0.25
+                        attr = round(timps * share, 2)
+                        p['IMPs_Atribuidos'] = attr
+                        self.players_data[p['Jugador']]['imps'][num] = attr
 
     def generate_report(self):
         headers = ["Jugador", "Subasta", "Carteo", "Total Pts"]
@@ -193,73 +258,41 @@ class BridgeAnalyzer:
         return tabulate(table, headers=headers, tablefmt="fancy_grid")
 
     def export_to_excel(self, filename="bridge_match_technical_report.xlsx"):
+        self.finalize_analysis()
         sorted_boards = sorted(list(self.active_boards))
-        self.match_imps = {'Equipo A': 0, 'Equipo B': 0} # Cumulative Gross IMPs
-        
         with pd.ExcelWriter(filename, engine='openpyxl') as writer:
             for num in sorted_boards:
                 sheet = f"Mano {num}"; all_dfs = []
                 d_o, d_c = self.boards_detail[num].get('Abierta'), self.boards_detail[num].get('Cerrada')
-                if d_o and d_c:
-                    diff = d_o['meta']['Puntos Reales (NS)'] - d_c['meta']['Puntos Reales (NS)']
-                    board_imps = get_imps(diff) * (1 if diff >= 0 else -1)
-                    if board_imps > 0: self.match_imps['Equipo A'] += board_imps
-                    else: self.match_imps['Equipo B'] += abs(board_imps)
-                else: diff, board_imps = 0, 0
-
-                # --- TOP PART: Technical Points by Room ---
                 for room in ['Abierta', 'Cerrada']:
                     det = self.boards_detail[num].get(room)
                     if not det: continue
                     all_dfs.append(pd.DataFrame([{"SALA": room.upper()}]))
                     all_dfs.append(pd.DataFrame([det['meta']]))
                     all_dfs.append(pd.DataFrame())
-                    p_list = det['players']
-                    for side_name, side_roles in [("Pareja NS", ['NORTH', 'SOUTH']), ("Pareja EW", ['EAST', 'WEST'])]:
-                        side_p = [p for p in p_list if p['Pos'] in side_roles]
-                        all_dfs.append(pd.DataFrame([{"Pareja": side_name}]))
-                        df_s = pd.DataFrame(side_p); all_dfs.append(df_s)
-                        sb, sp = sum(p['Subasta'] for p in side_p), sum(p['Carteo'] for p in side_p)
-                        all_dfs.append(pd.DataFrame([{'Jugador':f"SUBTOTAL {side_name}", 'Subasta':sb, 'Carteo':sp, 'Total Puntos':sb+sp}]))
+                    for sn, sr in [("Pareja NS", ['NORTH', 'SOUTH']), ("Pareja EW", ['EAST', 'WEST'])]:
+                        sp = [p for p in det['players'] if p['Pos'] in sr]
+                        all_dfs.append(pd.DataFrame([{"Pareja": sn}]))
+                        df_s = pd.DataFrame(sp); all_dfs.append(df_s)
+                        sb, sp_val = sum(p['Subasta'] for p in sp), sum(p['Carteo'] for p in sp)
+                        all_dfs.append(pd.DataFrame([{'Jugador':f"SUBTOTAL {sn}", 'Subasta':sb, 'Carteo':sp_val, 'Total':sb+sp_val}]))
                         all_dfs.append(pd.DataFrame())
-
-                # --- BOTTOM PART: IMP Attribution by Team ---
                 if d_o and d_c:
+                    summary = self.boards_detail[num]['imps_summary']
                     all_dfs.append(pd.DataFrame([{"SECCIÓN": "ATRIBUCIÓN DE IMPS POR EQUIPO"}]))
-                    all_dfs.append(pd.DataFrame([{"Diff Abierta NS - Cerrada NS": diff, "TOTAL IMPs TABLERO": board_imps}]))
+                    all_dfs.append(pd.DataFrame([{"Diff Abierta NS - Cerrada NS": summary['diff_pts'], "TOTAL IMPs TABLERO": summary['board_imps']}]))
                     all_dfs.append(pd.DataFrame())
-                    team_imps_map = {'Equipo A': board_imps, 'Equipo B': -board_imps}
                     for tn in ['Equipo A', 'Equipo B']:
-                        t_l = []
+                        team_list = []
                         for rn in ['Abierta', 'Cerrada']:
                             if rn not in self.boards_detail[num]: continue
                             for p in self.boards_detail[num][rn]['players']:
                                 is_a = (rn=='Abierta' and p['Pos'] in ['NORTH','SOUTH']) or (rn=='Cerrada' and p['Pos'] in ['EAST','WEST'])
-                                if (tn=='Equipo A' and is_a) or (tn=='Equipo B' and not is_a): t_l.append(p.copy())
-                        
-                        timps = team_imps_map[tn]
-                        orig_pts = [p['Total Puntos'] for p in t_l]
-                        
-                        # --- DYNAMIC OFFSET REFINEMENT ---
-                        # If team wins positive IMPs but sum of tech points is negative
-                        calc_pts = orig_pts[:]
-                        if timps > 0 and sum(orig_pts) < 0:
-                            # Max negative = most negative value (min)
-                            max_neg = min(orig_pts)
-                            offset = abs(max_neg)
-                            calc_pts = [v + offset for v in orig_pts]
-                        
-                        sum_calc = sum(calc_pts)
-                        for i, p in enumerate(t_l):
-                            share = calc_pts[i] / sum_calc if sum_calc != 0 else 0.25
-                            attr = timps * share
-                            p['IMPs Atribuidos'] = round(attr, 2)
-                            self.players_data[p['Jugador']]['imps'][num] = attr
-                        
+                                if (tn=='Equipo A' and is_a) or (tn=='Equipo B' and not is_a): team_list.append(p)
+                        timps = summary['team_a_imps'] if tn == 'Equipo A' else summary['team_b_imps']
                         all_dfs.append(pd.DataFrame([{"EQUIPO": tn, "Total IMPs Equipo": timps}]))
-                        all_dfs.append(pd.DataFrame(t_l)[['Jugador', 'Pos', 'Subasta', 'Carteo', 'Total Puntos', 'IMPs Atribuidos']])
+                        all_dfs.append(pd.DataFrame(team_list)[['Jugador', 'Pos', 'Subasta', 'Carteo', 'Total', 'IMPs_Atribuidos']])
                         all_dfs.append(pd.DataFrame())
-
                 row_ptr = 0
                 for df in all_dfs:
                     if df.empty: row_ptr += 1; continue
@@ -269,8 +302,8 @@ class BridgeAnalyzer:
                 for col in ws.columns:
                     mlen = max((len(str(c.value)) for c in col if c.value), default=0)
                     ws.column_dimensions[col[0].column_letter].width = mlen + 5
-
-            # --- FINAL SUMMARY ---
+            
+            # Summary
             summary_rows = []; b_tech = {'Equipo A':(None,-1e9), 'Equipo B':(None,-1e9)}; b_comp = {'Equipo A':(None,-1e9), 'Equipo B':(None,-1e9)}
             for tn in ['Equipo A', 'Equipo B']:
                 p_data = []
@@ -283,22 +316,16 @@ class BridgeAnalyzer:
                 summary_rows.append({"Jugador": tn.upper(), "Subasta":"", "Carteo":"", "Total Pts":"", "Total IMPs":""})
                 summary_rows.extend(p_data)
                 tts, ttc, tti = sum(p['Subasta'] for p in p_data), sum(p['Carteo'] for p in p_data), sum(p['Total IMPs'] for p in p_data)
-                summary_rows.append({"Jugador": f"SUBTOTAL {tn}", "Subasta": tts, "Carteo": ttc, "Total Pts": tts+ttc, "Total IMPs": round(tti, 2)})
+                summary_rows.append({"Jugador": f"SUBTOTAL NETO {tn}", "Subasta": tts, "Carteo": ttc, "Total Pts": tts+ttc, "Total IMPs": round(tti, 2)})
                 summary_rows.append({"Jugador": "", "Subasta":"", "Carteo":"", "Total Pts":"", "Total IMPs":""})
-            
-            res_a, res_b = self.match_imps['Equipo A'], self.match_imps['Equipo B']
-            summary_rows.append({"Jugador": "BALANCE BRUTO DEL PARTIDO", "Subasta": f"Equipo A: {res_a}", "Carteo": f"Equipo B: {res_b}", "Total Pts": "Balance Final", "Total IMPs": round(res_a - res_b, 2)})
+            res_a, res_b = self.match_gross_gain['Equipo A'], self.match_gross_gain['Equipo B']
+            summary_rows.append({"Jugador": "BALANCE DEL PARTIDO", "Subasta": f"Equipo A (Bruto): {res_a}", "Carteo": f"Equipo B (Bruto): {res_b}", "Total Pts": "Resultado Neto", "Total IMPs": round(res_a - res_b, 2)})
             summary_rows.append({"Jugador": f"{'EQUIPO A' if res_a > res_b else 'EQUIPO B'} GANA POR {abs(round(res_a - res_b, 2))} IMPs", "Subasta":"", "Carteo":"", "Total Pts":"", "Total IMPs":""})
             summary_rows.append({"Jugador": "", "Subasta":"", "Carteo":"", "Total Pts":"", "Total IMPs":""})
             for tn in ['Equipo A', 'Equipo B']:
                 summary_rows.append({"Jugador": f"Mejor Jugador Competitivo {tn}: {b_comp[tn][0]}", "Subasta":"", "Carteo":"", "Total Pts":"", "Total IMPs": round(b_comp[tn][1], 2)})
-                summary_rows.append({"Jugador": f"Mejor Jugador Técnico {tn}: {b_tech[tn][0]}", "Subasta":"", "Carteo":"", "Total Pts": round(b_tech[tn][1], 2), "Total IMPs": ""})
-            
+                summary_rows.append({"Jugador": f"Mejor Jugador Técnico {tn}: {b_tech[tn][0]}", "Subasta":"", "Carteo":"", "Total Pts": round(best_val := b_tech[tn][1], 2), "Total IMPs": ""})
             pd.DataFrame(summary_rows).to_excel(writer, sheet_name="Resumen Final", index=False)
-            ws = writer.sheets["Resumen Final"]
-            for col in ws.columns:
-                mlen = max((len(str(c.value)) for c in col if c.value), default=0)
-                ws.column_dimensions[col[0].column_letter].width = mlen + 5
         print(f"Exportado correctamente a {filename}")
 
 def main():

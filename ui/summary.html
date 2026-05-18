@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-background": "#d4e4fa",
+                    "tertiary-fixed-dim": "#dec29a",
+                    "outline-variant": "#45464d",
+                    "secondary-fixed-dim": "#b9c7e0",
+                    "primary-fixed-dim": "#bec6e0",
+                    "on-secondary-container": "#abb9d2",
+                    "tertiary-container": "#231500",
+                    "on-primary-container": "#798098",
+                    "inverse-primary": "#565e74",
+                    "on-secondary": "#233144",
+                    "on-tertiary-container": "#957d5a",
+                    "on-tertiary-fixed-variant": "#574425",
+                    "surface-container-lowest": "#010f1f",
+                    "surface-container": "#122131",
+                    "surface": "#051424",
+                    "primary": "#bec6e0",
+                    "error-container": "#93000a",
+                    "surface-container-highest": "#273647",
+                    "on-surface": "#d4e4fa",
+                    "on-error": "#690005",
+                    "on-primary": "#283044",
+                    "secondary-fixed": "#d5e3fd",
+                    "surface-bright": "#2c3a4c",
+                    "primary-container": "#0f172a",
+                    "error": "#ffb4ab",
+                    "on-surface-variant": "#c6c6cd",
+                    "inverse-surface": "#d4e4fa",
+                    "secondary": "#b9c7e0",
+                    "surface-container-high": "#1c2b3c",
+                    "on-tertiary-fixed": "#271901",
+                    "primary-fixed": "#dae2fd",
+                    "surface-variant": "#273647",
+                    "on-secondary-fixed": "#0d1c2f",
+                    "tertiary": "#dec29a",
+                    "surface-dim": "#051424",
+                    "surface-container-low": "#0d1c2d",
+                    "tertiary-fixed": "#fcdeb5",
+                    "on-tertiary": "#3e2d11",
+                    "on-secondary-fixed-variant": "#3a485c",
+                    "on-primary-fixed": "#131b2e",
+                    "outline": "#909097",
+                    "surface-tint": "#bec6e0",
+                    "background": "#051424",
+                    "on-primary-fixed-variant": "#3f465c",
+                    "secondary-container": "#3c4a5e",
+                    "inverse-on-surface": "#233143",
+                    "on-error-container": "#ffdad6"
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        body { background-color: #051424; color: #d4e4fa; }
+    </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+<aside class="fixed left-0 top-0 h-full flex flex-col z-50 py-lg docked full-height left-0 w-64 h-screen bg-surface-container border-r border-outline-variant">
+<div class="px-md mb-xl">
+<div class="flex items-center gap-sm">
+<span class="font-title-sm text-title-sm font-bold text-primary tracking-tight">BridgeLab</span>
+</div>
+<div class="font-label-xs text-label-xs text-on-surface-variant opacity-70">Pro Analytics v2.1</div>
+</div>
+<nav class="flex-1 flex flex-col">
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" href="/">
+<span class="material-symbols-outlined" data-icon="upload_file">upload_file</span>
+<span class="font-label-xs text-label-xs">PBN Upload</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" href="/analysis">
+<span class="material-symbols-outlined" data-icon="query_stats">query_stats</span>
+<span class="font-label-xs text-label-xs">Match Analysis</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm bg-secondary-container text-on-secondary-container border-r-4 border-primary transition-all" href="/summary">
+<span class="material-symbols-outlined" data-icon="summarize">summarize</span>
+<span class="font-label-xs text-label-xs">Final Reports</span>
+</a>
+</nav>
+</aside>
+
+<main class="ml-64 p-xl flex flex-col min-h-screen">
+<header class="mb-xl">
+<h1 class="font-display-lg text-display-lg font-black text-on-surface">Match Summary</h1>
+<div id="match-balance" class="mt-md px-md py-sm bg-surface-container-high border border-outline-variant rounded-xl inline-flex items-center gap-md">
+    <span class="font-headline-md text-headline-md text-primary" id="final-result-text">Calculating...</span>
+</div>
+</header>
+
+<div id="teams-container" class="grid grid-cols-2 gap-lg mb-xl">
+    <!-- Team cards will be injected here -->
+</div>
+
+<section class="bg-surface-container border border-outline-variant rounded-2xl overflow-hidden">
+    <div class="p-lg bg-surface-container-highest border-b border-outline-variant flex justify-between items-center">
+        <h2 class="font-headline-md text-headline-md text-primary">Performance by Team</h2>
+        <span class="text-on-surface-variant font-label-xs">Grouped by Team | Sorted by Technical Pts</span>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead class="bg-surface-container-low text-on-surface-variant font-label-xs uppercase">
+                <tr>
+                    <th class="px-lg py-md">Player</th>
+                    <th class="px-lg py-md">Team</th>
+                    <th class="px-lg py-md text-right">Bidding Pts</th>
+                    <th class="px-lg py-md text-right">Play Pts</th>
+                    <th class="px-lg py-md text-right font-bold">Total Pts</th>
+                    <th class="px-lg py-md text-right font-bold text-primary">Attributed IMPs</th>
+                </tr>
+            </thead>
+            <tbody id="players-table-body" class="divide-y divide-outline-variant">
+                <!-- Rows will be injected here -->
+            </tbody>
+        </table>
+    </div>
+</section>
+</main>
+
+<script>
+    async function loadData() {
+        try {
+            const response = await fetch('/api/data');
+            const data = await response.json();
+
+            if (!data.active_boards || data.active_boards.length === 0) {
+                document.getElementById('final-result-text').textContent = "No data available. Please upload files first.";
+                return;
+            }
+
+            const summary = data.match_summary;
+            const resultText = summary.net > 0 ? `EQUIPO A GANA POR ${summary.net.toFixed(1)} IMPs` : `EQUIPO B GANA POR ${Math.abs(summary.net).toFixed(1)} IMPs`;
+            document.getElementById('final-result-text').textContent = resultText;
+
+            const teamsContainer = document.getElementById('teams-container');
+            teamsContainer.innerHTML = '';
+
+            const tableBody = document.getElementById('players-table-body');
+            tableBody.innerHTML = '';
+
+            ['Equipo A', 'Equipo B'].forEach(teamName => {
+                const playersInTeamNames = data.teams_roster[teamName];
+                const teamPlayers = [];
+                
+                playersInTeamNames.forEach(pName => {
+                    const pd = data.players_data[pName];
+                    if (!pd) return;
+                    const subasta = Object.values(pd.bidding).reduce((a, b) => a + b, 0);
+                    const carteo = Object.values(pd.play).reduce((a, b) => a + b, 0);
+                    const imps = Object.values(pd.imps).reduce((a, b) => a + b, 0);
+                    teamPlayers.push({
+                        name: pName,
+                        team: teamName,
+                        subasta: subasta,
+                        carteo: carteo,
+                        total_pts: subasta + carteo,
+                        total_imps: imps
+                    });
+                });
+
+                // Sort players within team by Technical Points (Total Pts)
+                teamPlayers.sort((a, b) => b.total_pts - a.total_pts);
+
+                // Team Aggregates
+                const teamSub = teamPlayers.reduce((sum, p) => sum + p.subasta, 0);
+                const teamCar = teamPlayers.reduce((sum, p) => sum + p.carteo, 0);
+                const teamImps = teamPlayers.reduce((sum, p) => sum + p.total_imps, 0);
+
+                // Inject Team Card
+                const teamCard = `
+                    <div class="bg-surface-container p-lg border border-outline-variant rounded-2xl">
+                        <div class="flex justify-between items-center mb-lg">
+                            <h3 class="font-headline-md text-headline-md text-on-surface">${teamName.toUpperCase()}</h3>
+                            <span class="px-md py-xs bg-primary-container text-primary rounded-full font-data-mono font-bold">${teamImps.toFixed(1)} IMPs</span>
+                        </div>
+                        <div class="space-y-md">
+                            <div class="flex justify-between text-on-surface-variant font-label-xs">
+                                <span>Bidding Total</span>
+                                <span class="text-on-surface font-data-mono">${teamSub}</span>
+                            </div>
+                            <div class="flex justify-between text-on-surface-variant font-label-xs">
+                                <span>Play Total</span>
+                                <span class="text-on-surface font-data-mono">${teamCar}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                teamsContainer.innerHTML += teamCard;
+
+                // Add Team Header Row to Table
+                tableBody.innerHTML += `
+                    <tr class="bg-surface-container-low/50">
+                        <td colspan="6" class="px-lg py-2 font-bold text-primary text-xs tracking-widest uppercase">${teamName}</td>
+                    </tr>
+                `;
+
+                // Inject Player Rows
+                teamPlayers.forEach(p => {
+                    const row = `
+                        <tr class="hover:bg-surface-container-high transition-colors">
+                            <td class="px-lg py-md font-medium text-on-surface pl-12">${p.name}</td>
+                            <td class="px-lg py-md text-on-surface-variant font-label-xs">${p.team}</td>
+                            <td class="px-lg py-md text-right font-data-mono ${p.subasta < 0 ? 'text-error' : 'text-on-surface'}">${p.subasta}</td>
+                            <td class="px-lg py-md text-right font-data-mono ${p.carteo < 0 ? 'text-error' : 'text-on-surface'}">${p.carteo}</td>
+                            <td class="px-lg py-md text-right font-data-mono font-bold text-on-surface">${p.total_pts}</td>
+                            <td class="px-lg py-md text-right font-data-mono font-bold text-primary">${p.total_imps.toFixed(2)}</td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+
+                // Add Team Subtotal Row
+                tableBody.innerHTML += `
+                    <tr class="bg-surface-container-highest/30 font-bold">
+                        <td colspan="2" class="px-lg py-md text-on-surface">Subtotal ${teamName}</td>
+                        <td class="px-lg py-md text-right font-data-mono">${teamSub}</td>
+                        <td class="px-lg py-md text-right font-data-mono">${teamCar}</td>
+                        <td class="px-lg py-md text-right font-data-mono">${teamSub + teamCar}</td>
+                        <td class="px-lg py-md text-right font-data-mono text-primary">${teamImps.toFixed(1)}</td>
+                    </tr>
+                    <tr><td colspan="6" class="h-4"></td></tr>
+                `;
+            });
+
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    }
+
+    loadData();
+</script>
+</body></html>

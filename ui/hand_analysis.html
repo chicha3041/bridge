@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BridgeLab | Análisis de Manos</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    body { background-color: #051424; color: #d4e4fa; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; display: flex; }
+    .suit-spade { color: #94a3b8; }
+    .suit-heart { color: #f87171; }
+    .suit-diamond { color: #fbbf24; }
+    .suit-club { color: #34d399; }
+    .main-content { flex: 1; display: flex; flex-direction: column; height: 100vh; position: relative; }
+    .scroll-area { flex: 1; overflow-y: auto; padding: 24px; scroll-behavior: smooth; }
+    .center-panel { background: #010f1f; border: 2px solid #3b82f6; border-radius: 16px; min-height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-shadow: 0 0 30px rgba(59,130,246,0.4); z-index: 10; }
+    .sidebar-link-active { background: rgba(59,130,246,0.2); color: #60a5fa; font-weight: 900; border-left: 4px solid #3b82f6; }
+</style>
+</head>
+<body class="antialiased">
+<aside class="w-64 bg-slate-950 border-r border-slate-800 flex flex-col p-6 h-full z-50">
+    <h1 class="text-2xl font-black text-white mb-10 tracking-tighter italic text-center">BridgeLab</h1>
+    <nav class="space-y-4">
+        <a href="/" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-900 transition-all opacity-60">
+            <span class="text-xs font-bold uppercase tracking-widest">Subir PBN</span>
+        </a>
+        <a href="/analysis" class="sidebar-link-active flex items-center gap-3 px-4 py-3 rounded-xl transition-all">
+            <span class="text-xs font-bold uppercase tracking-widest">Análisis Mano</span>
+        </a>
+        <a href="/summary" class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-900 transition-all opacity-60">
+            <span class="text-xs font-bold uppercase tracking-widest">Resultados</span>
+        </a>
+    </nav>
+</aside>
+
+<main class="main-content">
+    <header class="h-16 border-b border-slate-800 px-8 flex items-center justify-between bg-slate-900/80 backdrop-blur-xl z-40">
+        <h2 class="text-sm font-black uppercase tracking-[0.3em] text-slate-400 italic">Match Analysis</h2>
+        <div id="meta-header" class="flex gap-4"></div>
+    </header>
+
+    <div id="navigator" class="h-14 bg-slate-950 border-b border-slate-800 flex items-center px-6 gap-3 overflow-x-auto scrollbar-hide"></div>
+
+    <div class="scroll-area" id="scroll-container">
+        <div class="bg-blue-600/10 border border-blue-500/20 p-6 rounded-2xl mb-8 text-sm italic text-blue-200/80 shadow-inner">
+            <p><strong>Cálculo de Subasta:</strong> Comparamos el contrato real alcanzado con el Par óptimo de la mano. Los puntos reflejan la eficacia técnica de la subasta.</p>
+        </div>
+
+        <div id="rooms-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-8 border-b border-slate-800 pb-12 mb-8"></div>
+
+        <div id="imp-section" class="max-w-5xl mx-auto pb-32"></div>
+    </div>
+</main>
+
+<script>
+    let matchData = null;
+
+    async function init() {
+        try {
+            const res = await fetch('/api/data');
+            matchData = await res.json();
+            if (matchData && matchData.active_boards.length > 0) {
+                renderNav();
+                loadBoard(matchData.active_boards[0]);
+            }
+        } catch (e) { console.error("Load error:", e); }
+    }
+
+    function renderNav() {
+        const nav = document.getElementById('navigator');
+        nav.innerHTML = '';
+        matchData.active_boards.forEach(num => {
+            const btn = document.createElement('button');
+            btn.className = "px-6 py-2 rounded-xl text-xs font-black border border-slate-800 hover:border-blue-500 transition-all whitespace-nowrap uppercase tracking-tighter bg-slate-900/50";
+            btn.id = `nav-${num}`;
+            btn.textContent = `Mano ${num}`;
+            btn.onclick = () => loadBoard(num);
+            nav.appendChild(btn);
+        });
+    }
+
+    function loadBoard(num) {
+        matchData.active_boards.forEach(n => {
+            const b = document.getElementById(`nav-${n}`);
+            if (n === num) {
+                b.className = "px-7 py-2.5 rounded-xl text-xs bg-blue-600 text-white font-black shadow-xl shadow-blue-900/40 whitespace-nowrap uppercase tracking-widest scale-105 transition-all";
+            } else {
+                b.className = "px-6 py-2 rounded-xl text-xs font-black border border-slate-800 hover:border-blue-500 transition-all whitespace-nowrap uppercase tracking-tighter bg-slate-900/50";
+            }
+        });
+        renderContent(num.toString());
+    }
+
+    function renderContent(id) {
+        const detail = matchData.boards_detail[id];
+        const grid = document.getElementById('rooms-grid');
+        const imp = document.getElementById('imp-section');
+        const header = document.getElementById('meta-header');
+
+        if (!detail) return;
+        grid.innerHTML = '';
+
+        ['Abierta', 'Cerrada'].forEach(room => {
+            const data = detail[room];
+            if (!data) return;
+
+            grid.innerHTML += `
+                <div class="bg-slate-900/50 p-8 rounded-[2.5rem] border border-slate-800/80 shadow-2xl relative">
+                    <div class="absolute top-0 left-0 w-1.5 h-full ${room==='Abierta'?'bg-blue-500':'bg-amber-500'}"></div>
+                    <div class="flex justify-between items-start mb-10">
+                        <h3 class="text-2xl font-black uppercase tracking-tighter text-white italic border-l-4 border-blue-500 pl-4">${room} ROOM</h3>
+                        <div class="text-right">
+                            <div class="text-2xl font-mono font-black text-blue-400 tracking-tighter">${data.meta['Contrato Final']}</div>
+                            <div class="text-[10px] font-black opacity-30 uppercase tracking-widest mt-1 text-white/50">Real NS: ${data.meta['Puntos Reales (NS)']}</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 grid-rows-3 gap-3 w-full max-w-sm mx-auto mb-12 aspect-square">
+                        <div class="col-start-2 row-start-1 bg-slate-800/60 p-4 rounded-3xl border border-white/5 flex flex-col justify-center">
+                            ${renderHand(data.meta.Manos.N)}
+                            <div class="text-[9px] text-center opacity-20 font-black mt-3 uppercase tracking-widest">NORTH</div>
+                        </div>
+                        <div class="col-start-1 row-start-2 bg-slate-800/60 p-4 rounded-3xl border border-white/5 flex flex-col justify-center">
+                            ${renderHand(data.meta.Manos.W)}
+                            <div class="text-[9px] text-center opacity-20 font-black mt-3 uppercase tracking-widest">WEST</div>
+                        </div>
+                        
+                        <div class="col-start-2 row-start-2 center-panel ring-4 ring-blue-500/20">
+                            <div class="text-[10px] font-black text-blue-300 opacity-80 uppercase tracking-[0.2em] mb-2">PAR ÓPTIMO</div>
+                            <div class="text-3xl font-mono font-black text-white leading-none drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]">${data.meta['Par Contrato']}</div>
+                            <div class="text-lg font-mono font-black text-blue-400 mt-2">${data.meta['Par Puntos (NS)']}</div>
+                        </div>
+
+                        <div class="col-start-3 row-start-2 bg-slate-800/60 p-4 rounded-3xl border border-white/5 flex flex-col justify-center">
+                            ${renderHand(data.meta.Manos.E)}
+                            <div class="text-[9px] text-center opacity-20 font-black mt-3 uppercase tracking-widest">EAST</div>
+                        </div>
+                        
+                        <!-- SOUTH HAND: Bajada un poco con mt-4 -->
+                        <div class="col-start-2 row-start-3 bg-slate-800/60 p-4 rounded-3xl border border-white/5 flex flex-col justify-center mt-4">
+                            ${renderHand(data.meta.Manos.S)}
+                            <div class="text-[9px] text-center opacity-20 font-black mt-3 uppercase tracking-widest">SOUTH</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-10">
+                        <div class="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 mb-4 ml-1">Secuencia de Subasta</div>
+                        <div class="bg-slate-950/60 rounded-[1.5rem] border border-slate-800 overflow-hidden shadow-inner p-4">
+                            <div class="grid grid-cols-4 border-b border-slate-800/50 text-[10px] font-black text-slate-500 text-center pb-3 mb-3 tracking-widest">
+                                <div>OESTE</div><div>NORTE</div><div>ESTE</div><div>SUR</div>
+                            </div>
+                            <div class="grid grid-cols-4 gap-2">
+                                ${formatAuction(data.meta['Subasta Real'], data.meta['Dador'])}
+                            </div>
+                        </div>
+                    </div>
+
+                    <table class="w-full text-xs">
+                        <thead><tr class="opacity-20 uppercase font-black border-b border-slate-800"><th class="py-2 text-left">Jugador</th><th class="text-right">Subasta</th><th class="text-right">Carteo</th><th class="text-right font-black">Total</th></tr></thead>
+                        <tbody class="divide-y divide-slate-800/50">
+                            ${data.players.map(p => `
+                                <tr>
+                                    <td class="py-5 font-black text-slate-200">${p.Jugador} <span class="opacity-30 text-[9px] font-normal uppercase ml-2">${p.Pos}</span></td>
+                                    <td class="text-right font-mono font-bold ${p.Subasta<0?'text-red-400/80':'text-green-400/80'}">${p.Subasta}</td>
+                                    <td class="text-right font-mono font-bold ${p.Carteo<0?'text-red-400/80':'text-green-400/80'}">${p.Carteo}</td>
+                                    <td class="text-right font-mono font-black text-white text-lg">${p.Total}</td>
+                                </tr>
+                                ${p.Subasta_Calculo ? `<tr><td colspan="4" class="pb-5 pt-0">
+                                    <div class="bg-blue-500/5 rounded-xl p-4 border border-blue-500/10 text-[10px] text-blue-300/70 italic leading-relaxed">
+                                        <span class="font-black text-blue-400/60 mr-2 uppercase not-italic">Cálculo:</span>${p.Subasta_Calculo}
+                                    </div>
+                                </td></tr>` : ''}
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        });
+
+        const imps = detail.imps_summary;
+        if (imps) {
+            imp.innerHTML = `
+                <div class="bg-slate-950 border border-slate-700 rounded-[3rem] overflow-hidden shadow-2xl mt-16 ring-1 ring-white/5">
+                    <div class="p-12 border-b border-slate-700 flex justify-between items-center bg-gradient-to-r from-slate-900 to-slate-950">
+                        <h4 class="text-4xl font-black tracking-tighter text-blue-500 uppercase italic">Resultado Mano</h4>
+                        <div class="text-right">
+                            <div class="text-6xl font-mono font-black text-white leading-none">${imps.board_imps >= 0 ? '+' : ''}${imps.board_imps}</div>
+                            <div class="text-[11px] font-black opacity-30 uppercase tracking-[0.4em] mt-4">Total IMPs Neto</div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 divide-x divide-slate-800">
+                        ${renderTeam('Equipo A', detail, imps.team_a_imps)}
+                        ${renderTeam('Equipo B', detail, imps.team_b_imps)}
+                    </div>
+                </div>
+            `;
+        }
+
+        const roomMeta = detail['Abierta'] ? detail['Abierta'].meta : detail['Cerrada'].meta;
+        const rawVul = roomMeta.Vulnerabilidad.toLowerCase();
+        
+        // Mapeo manual estricto según petición del usuario
+        let spanishVul = "Nadie";
+        if (rawVul === '0' || rawVul.includes('none')) spanishVul = "Nadie";
+        else if (rawVul === '1' || rawVul.includes('both')) spanishVul = "Todos";
+        else if (rawVul === '2' || rawVul.includes('ns')) spanishVul = "Norte/Sur";
+        else if (rawVul === '3' || rawVul.includes('ew')) spanishVul = "Este/Oeste";
+        
+        const vulColor = (spanishVul === "Nadie") ? 'bg-green-500' : 'bg-red-500';
+
+        header.innerHTML = `
+            <div class="flex items-center gap-5">
+                <div class="flex items-center gap-3 bg-slate-950 px-6 py-2.5 rounded-2xl border border-slate-800 shadow-2xl">
+                    <span class="w-3.5 h-3.5 rounded-full ${vulColor} shadow-[0_0_15px_rgba(239,68,68,0.4)]"></span>
+                    <span class="text-[13px] font-black uppercase text-white tracking-[0.1em]">VUL: ${spanishVul.toUpperCase()}</span>
+                </div>
+                <div class="bg-slate-950 px-6 py-2.5 rounded-2xl border border-slate-800 text-[13px] font-black uppercase text-slate-400 tracking-[0.1em] shadow-2xl">
+                    DADOR: ${roomMeta.Dador}
+                </div>
+            </div>
+        `;
+    }
+
+    function renderHand(str) {
+        const clean = str.replace(/[NESW]:/g, '').replace(/\s+/g, '');
+        const suits = clean.split('.');
+        const syms = ['&spades;', '&hearts;', '&diams;', '&clubs;'];
+        const clss = ['suit-spade', 'suit-heart', 'suit-diamond', 'suit-club'];
+        return suits.map((c, i) => {
+            return `<div class="flex items-center gap-3 font-mono text-[15px] leading-tight py-1"><span class="${clss[i]} w-5 text-center font-black">${syms[i]}</span><span class="text-slate-100 font-black tracking-[0.2em]">${c || '—'}</span></div>`;
+        }).join('');
+    }
+
+    function renderTeam(tname, detail, teamVal) {
+        const ps = [];
+        ['Abierta', 'Cerrada'].forEach(rn => {
+            if (!detail[rn]) return;
+            detail[rn].players.forEach(p => {
+                const is_a = (rn==='Abierta' && (p.Pos==='NORTH'||p.Pos==='SOUTH')) || (rn==='Cerrada' && (p.Pos==='EAST'||p.Pos==='WEST'));
+                if ((tname==='Equipo A' && is_a) || (tname==='Equipo B' && !is_a)) ps.push(p);
+            });
+        });
+        return `
+            <div class="p-12 space-y-7">
+                <div class="flex justify-between items-center mb-8 border-b border-white/5 pb-6">
+                    <span class="text-xs font-black opacity-30 uppercase tracking-[0.5em]">${tname}</span>
+                    <span class="text-4xl font-mono font-black ${teamVal>=0?'text-blue-500':'text-red-500'} italic">${teamVal>=0?'+':''}${teamVal}</span>
+                </div>
+                ${ps.map(p => `
+                    <div class="flex justify-between items-center bg-slate-900 border border-white/5 p-7 rounded-[2rem] shadow-xl transition-all hover:translate-x-2">
+                        <div>
+                            <div class="font-black text-slate-100 text-lg">${p.Jugador}</div>
+                            <div class="opacity-30 uppercase text-[10px] font-black mt-2 tracking-widest">${p.Pos} • ${p.Total} pts</div>
+                        </div>
+                        <div class="font-mono text-3xl font-black ${p.IMPs_Atribuidos>=0?'text-blue-400':'text-red-400'}">${p.IMPs_Atribuidos>=0?'+':''}${p.IMPs_Atribuidos}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    function formatAuction(str, dealer) {
+        if (!str) return '';
+        const bids = str.split(' - ');
+        const order = ['WEST', 'NORTH', 'EAST', 'SOUTH'];
+        let idx = order.indexOf(dealer);
+        const grid = [];
+        for (let i = 0; i < idx; i++) grid.push('<div class="opacity-0">.</div>');
+        bids.forEach(b => grid.push(`<div class="text-center font-mono text-[12px] py-2.5 rounded-2xl bg-slate-800 text-white border border-white/10 font-black shadow-lg">${b}</div>`));
+        return grid.join('');
+    }
+
+    init();
+</script>
+</body></html>

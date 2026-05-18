@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BridgeLab | Performance &amp; IMPS View</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-background": "#d4e4fa",
+                        "tertiary-fixed-dim": "#dec29a",
+                        "outline-variant": "#45464d",
+                        "secondary-fixed-dim": "#b9c7e0",
+                        "primary-fixed-dim": "#bec6e0",
+                        "on-secondary-container": "#abb9d2",
+                        "tertiary-container": "#231500",
+                        "on-primary-container": "#798098",
+                        "inverse-primary": "#565e74",
+                        "on-secondary": "#233144",
+                        "on-tertiary-container": "#957d5a",
+                        "on-tertiary-fixed-variant": "#574425",
+                        "surface-container-lowest": "#010f1f",
+                        "surface-container": "#122131",
+                        "surface": "#051424",
+                        "primary": "#bec6e0",
+                        "error-container": "#93000a",
+                        "surface-container-highest": "#273647",
+                        "on-surface": "#d4e4fa",
+                        "on-error": "#690005",
+                        "on-primary": "#283044",
+                        "secondary-fixed": "#d5e3fd",
+                        "surface-bright": "#2c3a4c",
+                        "primary-container": "#0f172a",
+                        "error": "#ffb4ab",
+                        "on-surface-variant": "#c6c6cd",
+                        "inverse-surface": "#d4e4fa",
+                        "secondary": "#b9c7e0",
+                        "surface-container-high": "#1c2b3c",
+                        "on-tertiary-fixed": "#271901",
+                        "primary-fixed": "#dae2fd",
+                        "surface-variant": "#273647",
+                        "on-secondary-fixed": "#0d1c2f",
+                        "tertiary": "#dec29a",
+                        "surface-dim": "#051424",
+                        "surface-container-low": "#0d1c2d",
+                        "tertiary-fixed": "#fcdeb5",
+                        "on-tertiary": "#3e2d11",
+                        "on-secondary-fixed-variant": "#3a485c",
+                        "on-primary-fixed": "#131b2e",
+                        "outline": "#909097",
+                        "surface-tint": "#bec6e0",
+                        "background": "#051424",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "secondary-container": "#3c4a5e",
+                        "inverse-on-surface": "#233143",
+                        "on-error-container": "#ffdad6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "xs": "4px",
+                        "gutter": "12px",
+                        "base": "4px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-xs": ["Inter"],
+                        "data-mono": ["Inter"],
+                        "title-sm": ["Inter"],
+                        "headline-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-xs": ["11px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                        "data-mono": ["13px", {"lineHeight": "16px", "fontWeight": "500"}],
+                        "title-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #051424;
+            color: #d4e4fa;
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen">
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-0 h-full flex flex-col z-50 py-lg docked full-height w-64 bg-surface-container dark:bg-surface-container border-r border-outline-variant">
+<div class="px-md mb-xl flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" style="font-size: 32px;">diamond</span>
+<div class="flex flex-col">
+<span class="font-title-sm text-title-sm font-bold text-primary dark:text-primary tracking-tight">BridgeLab</span>
+<span class="font-label-xs text-label-xs text-on-surface-variant">Pro Analytics v2.1</span>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-xs">
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">upload_file</span>
+<span class="font-body-md text-body-md">PBN Upload</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">query_stats</span>
+<span class="font-body-md text-body-md">Match Analysis</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm bg-secondary-container text-on-secondary-container border-r-4 border-primary transition-all" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-body-md text-body-md">Performance</span>
+</a>
+<a class="flex items-center gap-md px-md py-sm text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" href="#">
+<span class="material-symbols-outlined">summarize</span>
+<span class="font-body-md text-body-md">Final Reports</span>
+</a>
+</nav>
+<div class="px-md mt-auto">
+<button class="w-full bg-primary text-on-primary font-bold py-sm rounded-lg hover:opacity-90 transition-opacity">
+                New Analysis
+            </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-64 flex flex-col min-h-screen">
+<!-- TopAppBar -->
+<header class="flex items-center justify-between w-full pl-md pr-xl py-sm bg-surface-dim sticky top-0 z-40 border-b border-outline-variant">
+<div class="flex items-center gap-lg">
+<h1 class="font-display-lg text-display-lg font-black text-on-surface dark:text-on-surface uppercase tracking-tighter">Performance</h1>
+<div class="flex gap-md">
+<span class="font-title-sm text-title-sm text-primary border-b-2 border-primary font-bold">IMPS View</span>
+<span class="font-title-sm text-title-sm text-on-surface-variant font-medium hover:text-primary transition-colors cursor-pointer">HCP Efficiency</span>
+</div>
+</div>
+<div class="flex items-center gap-lg">
+<div class="relative">
+<span class="absolute inset-y-0 left-0 flex items-center pl-sm text-outline">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</span>
+<input class="bg-surface-container-high border-none text-body-md rounded-lg pl-xl pr-md py-xs focus:ring-1 focus:ring-primary w-64" placeholder="Search boards..." type="text"/>
+</div>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer">notifications</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer">settings</span>
+<img alt="Analyst Profile" class="w-8 h-8 rounded-full border border-outline-variant" data-alt="A professional headshot of a middle-aged male analyst with a neutral expression, wearing a navy blue blazer over a crisp white shirt. The background is a soft-focus office environment with warm, low-key lighting that emphasizes the scholarly and sophisticated atmosphere of the analytics platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFy36wmObNpSXVuGdx9pBQI1-Q4KbJKgkOsMkVWD_ACQFwVDtexEuAD2kY8Zab11FToNeRgl_su7JUIupw_UDucAhysND5U1ShV-v48yc62eqOtGG6NV98MS_sAeaftr4vRPq2YVJwEfUyAhl_z0U6YRCbio_EAglDeAjuq_nhUk4RPQddz6nO2SQEjLFjYgInD-zuX_h6Yp2-9bj1A-KUFAjKBqW49WCCyLJEh6i9CcwaakEchgsoBiXw0ikmOPYJZAZTjjRmeH7y"/>
+</div>
+</div>
+</header>
+<!-- Canvas Content -->
+<div class="p-lg space-y-lg">
+<!-- Summary Stats / Bento Grid Start -->
+<div class="grid grid-cols-12 gap-md">
+<!-- Match Score Summary Card -->
+<div class="col-span-12 lg:col-span-4 bg-surface-container border border-outline-variant p-md rounded-lg flex flex-col justify-between">
+<div>
+<span class="font-label-xs text-label-xs text-on-surface-variant uppercase tracking-widest">Match Score</span>
+<div class="flex items-end gap-md mt-sm">
+<span class="font-display-lg text-[48px] font-black text-secondary">42</span>
+<span class="font-title-sm text-title-sm text-on-surface-variant mb-xs">vs</span>
+<span class="font-display-lg text-[48px] font-black text-on-tertiary-container">18</span>
+</div>
+</div>
+<div class="mt-lg">
+<div class="flex justify-between font-label-xs mb-xs">
+<span class="text-secondary">N/S PERFORMANCE (70%)</span>
+<span class="text-on-tertiary-container">E/W PERFORMANCE (30%)</span>
+</div>
+<div class="h-2 w-full bg-surface-container-highest rounded-full overflow-hidden flex">
+<div class="h-full bg-secondary" style="width: 70%"></div>
+<div class="h-full bg-tertiary" style="width: 30%"></div>
+</div>
+</div>
+</div>
+<!-- Performance Trend (Bar Graph Simulation) -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container border border-outline-variant p-md rounded-lg">
+<div class="flex justify-between items-center mb-md">
+<span class="font-label-xs text-label-xs text-on-surface-variant uppercase tracking-widest">Cumulative IMPS Trend</span>
+<div class="flex gap-sm">
+<span class="flex items-center gap-xs font-label-xs text-secondary"><span class="w-2 h-2 rounded-full bg-secondary"></span> N/S</span>
+<span class="flex items-center gap-xs font-label-xs text-tertiary"><span class="w-2 h-2 rounded-full bg-tertiary"></span> E/W</span>
+</div>
+</div>
+<!-- Chart Simulation -->
+<div class="h-32 flex items-end gap-xs">
+<!-- Bars represent boards -->
+<div class="flex-1 bg-secondary opacity-30 h-[20%] rounded-t-xs"></div>
+<div class="flex-1 bg-secondary opacity-50 h-[40%] rounded-t-xs"></div>
+<div class="flex-1 bg-secondary opacity-70 h-[35%] rounded-t-xs"></div>
+<div class="flex-1 bg-secondary opacity-90 h-[65%] rounded-t-xs"></div>
+<div class="flex-1 bg-secondary h-[80%] rounded-t-xs"></div>
+<div class="flex-1 bg-secondary opacity-80 h-[75%] rounded-t-xs"></div>
+<div class="flex-1 bg-error opacity-40 h-[15%] rounded-t-xs"></div>
+<div class="flex-1 bg-secondary opacity-90 h-[85%] rounded-t-xs"></div>
+<div class="flex-1 bg-secondary opacity-60 h-[50%] rounded-t-xs"></div>
+<div class="flex-1 bg-secondary h-[95%] rounded-t-xs"></div>
+<div class="flex-1 bg-secondary opacity-80 h-[70%] rounded-t-xs"></div>
+<div class="flex-1 bg-secondary opacity-90 h-[88%] rounded-t-xs"></div>
+<div class="flex-1 bg-secondary h-full rounded-t-xs"></div>
+<div class="flex-1 bg-secondary opacity-70 h-[60%] rounded-t-xs"></div>
+</div>
+<div class="flex justify-between mt-sm text-label-xs text-on-surface-variant">
+<span>Board 1</span>
+<span>Board 14</span>
+</div>
+</div>
+</div>
+<!-- Detailed Performance Table -->
+<div class="bg-surface-container border border-outline-variant rounded-lg overflow-hidden">
+<div class="px-md py-sm bg-surface-container-high border-b border-outline-variant flex justify-between items-center">
+<span class="font-title-sm text-title-sm font-bold text-on-surface">Board Breakdown</span>
+<button class="flex items-center gap-xs text-label-xs text-primary font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-[16px]">filter_list</span> Filter View
+                    </button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-dim">
+<th class="px-md py-sm font-label-xs text-label-xs text-on-surface-variant uppercase border-b border-outline-variant">Board</th>
+<th class="px-md py-sm font-label-xs text-label-xs text-on-surface-variant uppercase border-b border-outline-variant">Contract</th>
+<th class="px-md py-sm font-label-xs text-label-xs text-on-surface-variant uppercase border-b border-outline-variant">Declarer</th>
+<th class="px-md py-sm font-label-xs text-label-xs text-on-surface-variant uppercase border-b border-outline-variant">Result</th>
+<th class="px-md py-sm font-label-xs text-label-xs text-on-surface-variant uppercase border-b border-outline-variant">Score</th>
+<th class="px-md py-sm font-label-xs text-label-xs text-on-surface-variant uppercase border-b border-outline-variant text-right">IMPS N/S</th>
+<th class="px-md py-sm font-label-xs text-label-xs text-on-surface-variant uppercase border-b border-outline-variant text-right">IMPS E/W</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-highest transition-colors">
+<td class="px-md py-md font-data-mono text-data-mono text-primary">#01</td>
+<td class="px-md py-md">
+<div class="flex gap-xs">
+<span class="bg-secondary-container text-on-secondary-container px-sm py-[2px] rounded-sm font-data-mono font-bold">4♠</span>
+</div>
+</td>
+<td class="px-md py-md font-body-md text-on-surface">South</td>
+<td class="px-md py-md font-body-md text-on-surface">=</td>
+<td class="px-md py-md font-data-mono text-on-surface">420</td>
+<td class="px-md py-md text-right font-data-mono text-[#4ade80]">+6.2</td>
+<td class="px-md py-md text-right font-data-mono text-error">-6.2</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-highest transition-colors">
+<td class="px-md py-md font-data-mono text-data-mono text-primary">#02</td>
+<td class="px-md py-md">
+<div class="flex gap-xs">
+<span class="bg-surface-container-highest border border-outline px-sm py-[2px] rounded-sm font-data-mono font-bold">3NT</span>
+</div>
+</td>
+<td class="px-md py-md font-body-md text-on-surface">East</td>
+<td class="px-md py-md font-body-md text-on-surface">+1</td>
+<td class="px-md py-md font-data-mono text-on-surface">-430</td>
+<td class="px-md py-md text-right font-data-mono text-error">-2.4</td>
+<td class="px-md py-md text-right font-data-mono text-[#4ade80]">+2.4</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-highest transition-colors">
+<td class="px-md py-md font-data-mono text-data-mono text-primary">#03</td>
+<td class="px-md py-md">
+<div class="flex gap-xs">
+<span class="bg-error-container text-on-error-container px-sm py-[2px] rounded-sm font-data-mono font-bold">5♦x</span>
+</div>
+</td>
+<td class="px-md py-md font-body-md text-on-surface">South</td>
+<td class="px-md py-md font-body-md text-on-surface">-2</td>
+<td class="px-md py-md font-data-mono text-on-surface">-500</td>
+<td class="px-md py-md text-right font-data-mono text-error">-11.0</td>
+<td class="px-md py-md text-right font-data-mono text-[#4ade80]">+11.0</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-highest transition-colors">
+<td class="px-md py-md font-data-mono text-data-mono text-primary">#04</td>
+<td class="px-md py-md">
+<div class="flex gap-xs">
+<span class="bg-secondary-container text-on-secondary-container px-sm py-[2px] rounded-sm font-data-mono font-bold">6♥</span>
+</div>
+</td>
+<td class="px-md py-md font-body-md text-on-surface">North</td>
+<td class="px-md py-md font-body-md text-on-surface">=</td>
+<td class="px-md py-md font-data-mono text-on-surface">980</td>
+<td class="px-md py-md text-right font-data-mono text-[#4ade80]">+14.5</td>
+<td class="px-md py-md text-right font-data-mono text-error">-14.5</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-container-highest transition-colors">
+<td class="px-md py-md font-data-mono text-data-mono text-primary">#05</td>
+<td class="px-md py-md">
+<div class="flex gap-xs">
+<span class="bg-surface-container-highest border border-outline px-sm py-[2px] rounded-sm font-data-mono font-bold">Pass</span>
+</div>
+</td>
+<td class="px-md py-md font-body-md text-on-surface-variant">---</td>
+<td class="px-md py-md font-body-md text-on-surface-variant">---</td>
+<td class="px-md py-md font-data-mono text-on-surface">0</td>
+<td class="px-md py-md text-right font-data-mono text-on-surface-variant">0.0</td>
+<td class="px-md py-md text-right font-data-mono text-on-surface-variant">0.0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Player Detail Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-md">
+<!-- Player North -->
+<div class="bg-surface-container-high border border-outline-variant p-md rounded-lg">
+<div class="flex items-center justify-between mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center font-bold text-primary">N</div>
+<div>
+<h3 class="font-title-sm text-title-sm text-on-surface">Alexander</h3>
+<p class="font-label-xs text-label-xs text-on-surface-variant">North Position</p>
+</div>
+</div>
+<span class="font-data-mono text-data-mono text-[#4ade80]">+18.2</span>
+</div>
+<div class="space-y-sm">
+<div class="flex justify-between font-label-xs">
+<span class="text-on-surface-variant">Declarer Success Rate</span>
+<span class="text-on-surface">82%</span>
+</div>
+<div class="h-1 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 82%"></div>
+</div>
+</div>
+</div>
+<!-- Player South -->
+<div class="bg-surface-container-high border border-outline-variant p-md rounded-lg">
+<div class="flex items-center justify-between mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center font-bold text-primary">S</div>
+<div>
+<h3 class="font-title-sm text-title-sm text-on-surface">Benjamin</h3>
+<p class="font-label-xs text-label-xs text-on-surface-variant">South Position</p>
+</div>
+</div>
+<span class="font-data-mono text-data-mono text-[#4ade80]">+12.4</span>
+</div>
+<div class="space-y-sm">
+<div class="flex justify-between font-label-xs">
+<span class="text-on-surface-variant">Declarer Success Rate</span>
+<span class="text-on-surface">74%</span>
+</div>
+<div class="h-1 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 74%"></div>
+</div>
+</div>
+</div>
+<!-- Player East -->
+<div class="bg-surface-container-high border border-outline-variant p-md rounded-lg">
+<div class="flex items-center justify-between mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-tertiary-container flex items-center justify-center font-bold text-tertiary">E</div>
+<div>
+<h3 class="font-title-sm text-title-sm text-on-surface">Claudia</h3>
+<p class="font-label-xs text-label-xs text-on-surface-variant">East Position</p>
+</div>
+</div>
+<span class="font-data-mono text-data-mono text-error">-8.5</span>
+</div>
+<div class="space-y-sm">
+<div class="flex justify-between font-label-xs">
+<span class="text-on-surface-variant">Declarer Success Rate</span>
+<span class="text-on-surface">58%</span>
+</div>
+<div class="h-1 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-tertiary" style="width: 58%"></div>
+</div>
+</div>
+</div>
+<!-- Player West -->
+<div class="bg-surface-container-high border border-outline-variant p-md rounded-lg">
+<div class="flex items-center justify-between mb-md">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-full bg-tertiary-container flex items-center justify-center font-bold text-tertiary">W</div>
+<div>
+<h3 class="font-title-sm text-title-sm text-on-surface">Dimitri</h3>
+<p class="font-label-xs text-label-xs text-on-surface-variant">West Position</p>
+</div>
+</div>
+<span class="font-data-mono text-data-mono text-error">-6.2</span>
+</div>
+<div class="space-y-sm">
+<div class="flex justify-between font-label-xs">
+<span class="text-on-surface-variant">Declarer Success Rate</span>
+<span class="text-on-surface">61%</span>
+</div>
+<div class="h-1 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-tertiary" style="width: 61%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>
