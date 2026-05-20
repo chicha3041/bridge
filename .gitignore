@@ -7,7 +7,22 @@ wheels/
 *.egg-info
 
 # Virtual environments
-.venv
+.venv/
+
+# Environment variables
+.env
 
 # Generated Excel Reports
 *.xlsx
+
+# Bridge Specific Data (Uploads and personal test files)
+uploads/*.pbn
+uploads/*_temp.pbn
+abierta.pbn
+cerrada.pbn
+test_match.pbn
+dump.txt
+
+# OS files
+.DS_Store
+Thumbs.db
