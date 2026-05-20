@@ -3,20 +3,58 @@
 <html class="dark" lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>BridgeLab | Análisis de Manos</title>
+<title>BridgeLab | Hand Analysis</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <style>
     body { background-color: #051424; color: #d4e4fa; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; display: flex; }
-    .suit-spade { color: #94a3b8; }
+    .suit-spade { color: #60a5fa; }
     .suit-heart { color: #f87171; }
     .suit-diamond { color: #fbbf24; }
     .suit-club { color: #34d399; }
+    
     .main-content { flex: 1; display: flex; flex-direction: column; height: 100vh; position: relative; }
     .scroll-area { flex: 1; overflow-y: auto; padding: 24px; scroll-behavior: smooth; }
-    .center-panel { background: #010f1f; border: 2px solid #3b82f6; border-radius: 16px; min-height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-shadow: 0 0 30px rgba(59,130,246,0.4); z-index: 10; }
+    
+    .hand-box { background: rgba(30, 41, 59, 0.4); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 12px; min-height: 100px; display: flex; flex-direction: column; justify-content: flex-start; position: relative; }
+    .trick-center-box { background: rgba(0,0,0,0.6); border: 2px solid rgba(255,255,255,0.1); border-radius: 16px; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); position: relative; min-height: 140px; display: flex; align-items: center; justify-content: center; }
+    
+    .card-visual { 
+        font-weight: 900; font-size: 14px; width: 34px; height: 48px; 
+        display: flex; align-items: center; justify-content: center; 
+        border-radius: 6px; border: 1px solid rgba(255,255,255,0.6); 
+        background: #1c2b3c; box-shadow: 0 6px 16px rgba(0,0,0,0.8); 
+        transform: scale(1.1); z-index: 20; color: white;
+    }
+    
+    .par-info-box { 
+        text-align: center; 
+        background: rgba(30, 64, 175, 0.4); 
+        padding: 8px 12px; 
+        border-radius: 12px; 
+        border: 1px solid rgba(59, 130, 246, 0.5); 
+        backdrop-blur: sm;
+        min-width: 80px;
+    }
+    .par-label { font-size: 8px; font-weight: 900; color: #93c5fd; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; }
+    .par-value { font-size: 16px; font-weight: 900; color: #ffffff; line-height: 1; }
+    .par-points { font-size: 10px; font-weight: 700; color: #60a5fa; margin-top: 2px; }
+
+    .bid-spade { color: #60a5fa; }
+    .bid-heart { color: #f87171; }
+    .bid-diamond { color: #fbbf24; }
+    .bid-club { color: #34d399; }
+    .bid-nt { color: #c084fc; }
+    .bid-pass { color: #64748b; }
+    .bid-special { color: #f472b6; }
     .sidebar-link-active { background: rgba(59,130,246,0.2); color: #60a5fa; font-weight: 900; border-left: 4px solid #3b82f6; }
+    
+    .nav-btn { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 12px 24px; font-weight: 900; font-size: 12px; text-transform: uppercase; color: white; transition: all 0.2s; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+    .nav-btn:hover { background: #3b82f6; border-color: #60a5fa; transform: translateY(-2px); }
+    .nav-btn:active { transform: translateY(0) scale(0.95); }
+
+    .error-toast { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: #991b1b; color: white; padding: 10px 20px; border-radius: 9999px; font-size: 11px; font-weight: 900; z-index: 50; border: 1px solid #f87171; box-shadow: 0 10px 30px rgba(0,0,0,0.7); display: none; }
 </style>
 </head>
 <body class="antialiased">
@@ -37,25 +75,36 @@
 
 <main class="main-content">
     <header class="h-16 border-b border-slate-800 px-8 flex items-center justify-between bg-slate-900/80 backdrop-blur-xl z-40">
-        <h2 class="text-sm font-black uppercase tracking-[0.3em] text-slate-400 italic">Match Analysis</h2>
+        <h2 class="text-sm font-black uppercase tracking-[0.3em] text-slate-400">Hand-by-Hand Analysis</h2>
         <div id="meta-header" class="flex gap-4"></div>
     </header>
 
     <div id="navigator" class="h-14 bg-slate-950 border-b border-slate-800 flex items-center px-6 gap-3 overflow-x-auto scrollbar-hide"></div>
 
     <div class="scroll-area" id="scroll-container">
-        <div class="bg-blue-600/10 border border-blue-500/20 p-6 rounded-2xl mb-8 text-sm italic text-blue-200/80 shadow-inner">
-            <p><strong>Cálculo de Subasta:</strong> Comparamos el contrato real alcanzado con el Par óptimo de la mano. Los puntos reflejan la eficacia técnica de la subasta.</p>
+        <!-- Explainer -->
+        <div class="bg-blue-600/10 border border-blue-500/20 p-6 rounded-2xl mb-8 text-sm italic text-blue-200/80 shadow-inner flex items-center gap-4">
+             <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+             <p><strong>Reproducción:</strong> Utiliza los botones "Retroceder" y "Avanzar" para ver el desarrollo de la mano carta a carta. El sistema indicará los errores críticos.</p>
         </div>
 
+        <!-- Two Rooms Grid -->
         <div id="rooms-grid" class="grid grid-cols-1 xl:grid-cols-2 gap-8 border-b border-slate-800 pb-12 mb-8"></div>
 
+        <!-- IMP Attribution Section -->
         <div id="imp-section" class="max-w-5xl mx-auto pb-32"></div>
     </div>
 </main>
 
 <script>
     let matchData = null;
+    let cursors = { 'Abierta': 0, 'Cerrada': 0 };
+
+    const vulMap = {
+        'none': 'Nadie', 'both': 'Todos', 'ns': 'Norte/Sur', 'ew': 'Este/Oeste',
+        '0': 'Nadie', '1': 'Todos', '2': 'Norte/Sur', '3': 'Este/Oeste',
+        'nadie': 'Nadie', 'todos': 'Todos', 'norte/sur': 'Norte/Sur', 'este/oeste': 'Este/Oeste'
+    };
 
     async function init() {
         try {
@@ -65,7 +114,7 @@
                 renderNav();
                 loadBoard(matchData.active_boards[0]);
             }
-        } catch (e) { console.error("Load error:", e); }
+        } catch (e) { console.error("Init failed:", e); }
     }
 
     function renderNav() {
@@ -81,7 +130,10 @@
         });
     }
 
+    let currentBoardId = null;
+
     function loadBoard(num) {
+        currentBoardId = num.toString();
         matchData.active_boards.forEach(n => {
             const b = document.getElementById(`nav-${n}`);
             if (n === num) {
@@ -90,7 +142,8 @@
                 b.className = "px-6 py-2 rounded-xl text-xs font-black border border-slate-800 hover:border-blue-500 transition-all whitespace-nowrap uppercase tracking-tighter bg-slate-900/50";
             }
         });
-        renderContent(num.toString());
+        cursors = { 'Abierta': 0, 'Cerrada': 0 };
+        renderContent(currentBoardId);
     }
 
     function renderContent(id) {
@@ -105,44 +158,75 @@
         ['Abierta', 'Cerrada'].forEach(room => {
             const data = detail[room];
             if (!data) return;
+            const c = cursors[room];
+            const played = data.meta.Play.slice(0, c);
+            const total = data.meta.Play.length;
 
             grid.innerHTML += `
                 <div class="bg-slate-900/50 p-8 rounded-[2.5rem] border border-slate-800/80 shadow-2xl relative">
                     <div class="absolute top-0 left-0 w-1.5 h-full ${room==='Abierta'?'bg-blue-500':'bg-amber-500'}"></div>
-                    <div class="flex justify-between items-start mb-10">
+                    
+                    <div id="toast-${room}" class="error-toast"></div>
+
+                    <div class="flex justify-between items-start mb-8">
                         <h3 class="text-2xl font-black uppercase tracking-tighter text-white italic border-l-4 border-blue-500 pl-4">${room} ROOM</h3>
-                        <div class="text-right">
-                            <div class="text-2xl font-mono font-black text-blue-400 tracking-tighter">${data.meta['Contrato Final']}</div>
-                            <div class="text-[10px] font-black opacity-30 uppercase tracking-widest mt-1 text-white/50">Real NS: ${data.meta['Puntos Reales (NS)']}</div>
+                        <div class="flex gap-4 items-center">
+                            <div class="par-info-box">
+                                <div class="par-label">Par</div>
+                                <div class="par-value">${data.meta['Par Contrato']}</div>
+                                <div class="par-points">${data.meta['Par Puntos (NS)']} pts</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-2xl font-mono font-black text-blue-400 tracking-tighter">${data.meta['Contrato Final']}</div>
+                                <div class="text-[10px] font-black opacity-30 uppercase tracking-widest mt-1">Real: NS ${data.meta['Puntos Reales (NS)']}</div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-3 grid-rows-3 gap-3 w-full max-w-sm mx-auto mb-12 aspect-square">
-                        <div class="col-start-2 row-start-1 bg-slate-800/60 p-4 rounded-3xl border border-white/5 flex flex-col justify-center">
-                            ${renderHand(data.meta.Manos.N)}
-                            <div class="text-[9px] text-center opacity-20 font-black mt-3 uppercase tracking-widest">NORTH</div>
+                    <div class="grid grid-cols-3 grid-rows-3 gap-3 w-full max-w-sm mx-auto mb-10 aspect-square relative">
+                        <div class="col-start-2 row-start-1 hand-box">
+                            ${renderHand(data.meta.Manos.N, played)}
+                            <div class="text-[8px] text-center opacity-20 font-black mt-2">NORTH</div>
                         </div>
-                        <div class="col-start-1 row-start-2 bg-slate-800/60 p-4 rounded-3xl border border-white/5 flex flex-col justify-center">
-                            ${renderHand(data.meta.Manos.W)}
-                            <div class="text-[9px] text-center opacity-20 font-black mt-3 uppercase tracking-widest">WEST</div>
+                        <div class="col-start-1 row-start-2 hand-box">
+                            ${renderHand(data.meta.Manos.W, played)}
+                            <div class="text-[8px] text-center opacity-20 font-black mt-2">WEST</div>
                         </div>
                         
-                        <div class="col-start-2 row-start-2 center-panel ring-4 ring-blue-500/20">
-                            <div class="text-[10px] font-black text-blue-300 opacity-80 uppercase tracking-[0.2em] mb-2">PAR ÓPTIMO</div>
-                            <div class="text-3xl font-mono font-black text-white leading-none drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]">${data.meta['Par Contrato']}</div>
-                            <div class="text-lg font-mono font-black text-blue-400 mt-2">${data.meta['Par Puntos (NS)']}</div>
+                        <!-- TRICK CENTER -->
+                        <div class="col-start-2 row-start-2 trick-center-box grid grid-cols-3 grid-rows-3 p-1">
+                            <div class="col-start-2 row-start-1 flex justify-center items-center z-10">${getTrickCard(id, room, 'N')}</div>
+                            <div class="col-start-1 row-start-2 flex justify-center items-center z-10">${getTrickCard(id, room, 'W')}</div>
+                            <div class="col-start-3 row-start-2 flex justify-center items-center z-10">${getTrickCard(id, room, 'E')}</div>
+                            <div class="col-start-2 row-start-3 flex justify-center items-center z-10">${getTrickCard(id, room, 'S')}</div>
                         </div>
 
-                        <div class="col-start-3 row-start-2 bg-slate-800/60 p-4 rounded-3xl border border-white/5 flex flex-col justify-center">
-                            ${renderHand(data.meta.Manos.E)}
-                            <div class="text-[9px] text-center opacity-20 font-black mt-3 uppercase tracking-widest">EAST</div>
+                        <div class="col-start-3 row-start-2 hand-box">
+                            ${renderHand(data.meta.Manos.E, played)}
+                            <div class="text-[8px] text-center opacity-20 font-black mt-2">EAST</div>
                         </div>
                         
-                        <!-- SOUTH HAND: Bajada un poco con mt-4 -->
-                        <div class="col-start-2 row-start-3 bg-slate-800/60 p-4 rounded-3xl border border-white/5 flex flex-col justify-center mt-4">
-                            ${renderHand(data.meta.Manos.S)}
-                            <div class="text-[9px] text-center opacity-20 font-black mt-3 uppercase tracking-widest">SOUTH</div>
+                        <!-- SOUTH HAND: Alineado al inicio de su fila para subirlo -->
+                        <div class="col-start-2 row-start-3 hand-box self-start">
+                            ${renderHand(data.meta.Manos.S, played)}
+                            <div class="text-[8px] text-center opacity-20 font-black mt-2">SOUTH</div>
                         </div>
+                    </div>
+
+                    <!-- SIMPLIFIED CONTROLS -->
+                    <div class="flex items-center justify-center gap-6 mb-10 bg-slate-950/60 p-5 rounded-[2rem] border border-white/5 shadow-inner">
+                        <button onclick="changeStep('${room}', -1)" class="nav-btn">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                            Retroceder
+                        </button>
+                        <div class="text-center min-w-[120px]">
+                            <div class="text-[10px] font-black opacity-30 uppercase tracking-widest mb-1">CARTA</div>
+                            <div class="font-mono text-lg font-black text-blue-400 leading-none">${c} / ${total}</div>
+                        </div>
+                        <button onclick="changeStep('${room}', 1)" class="nav-btn">
+                            Avanzar
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                        </button>
                     </div>
 
                     <div class="mb-10">
@@ -167,9 +251,14 @@
                                     <td class="text-right font-mono font-bold ${p.Carteo<0?'text-red-400/80':'text-green-400/80'}">${p.Carteo}</td>
                                     <td class="text-right font-mono font-black text-white text-lg">${p.Total}</td>
                                 </tr>
-                                ${p.Subasta_Calculo ? `<tr><td colspan="4" class="pb-5 pt-0">
-                                    <div class="bg-blue-500/5 rounded-xl p-4 border border-blue-500/10 text-[10px] text-blue-300/70 italic leading-relaxed">
-                                        <span class="font-black text-blue-400/60 mr-2 uppercase not-italic">Cálculo:</span>${p.Subasta_Calculo}
+                                ${p.Subasta_Calculo ? `<tr><td colspan="4" class="pb-3 pt-0">
+                                    <div class="bg-blue-500/5 rounded-lg p-3 border border-blue-500/10 text-[10px] text-blue-300/70 italic leading-relaxed">
+                                        <span class="font-black text-blue-400/60 mr-2 uppercase not-italic">Subasta:</span>${p.Subasta_Calculo}
+                                    </div>
+                                </td></tr>` : ''}
+                                ${p.Detalle_Carteo ? `<tr><td colspan="4" class="pb-5 pt-0">
+                                    <div class="bg-red-500/5 rounded-lg p-3 border border-red-500/10 text-[10px] text-red-300/70 italic leading-relaxed">
+                                        <span class="font-black text-red-400/60 mr-2 uppercase not-italic">Carteo:</span>${p.Detalle_Carteo}
                                     </div>
                                 </td></tr>` : ''}
                             `).join('')}
@@ -177,6 +266,7 @@
                     </table>
                 </div>
             `;
+            checkError(room, id, c);
         });
 
         const imps = detail.imps_summary;
@@ -199,16 +289,8 @@
         }
 
         const roomMeta = detail['Abierta'] ? detail['Abierta'].meta : detail['Cerrada'].meta;
-        const rawVul = roomMeta.Vulnerabilidad.toLowerCase();
-        
-        // Mapeo manual estricto según petición del usuario
-        let spanishVul = "Nadie";
-        if (rawVul === '0' || rawVul.includes('none')) spanishVul = "Nadie";
-        else if (rawVul === '1' || rawVul.includes('both')) spanishVul = "Todos";
-        else if (rawVul === '2' || rawVul.includes('ns')) spanishVul = "Norte/Sur";
-        else if (rawVul === '3' || rawVul.includes('ew')) spanishVul = "Este/Oeste";
-        
-        const vulColor = (spanishVul === "Nadie") ? 'bg-green-500' : 'bg-red-500';
+        const spanishVul = vulMap[roomMeta.Vulnerabilidad] || roomMeta.Vulnerabilidad;
+        const vulColor = (spanishVul.toLowerCase() === "nadie") ? 'bg-green-500' : 'bg-red-500';
 
         header.innerHTML = `
             <div class="flex items-center gap-5">
@@ -223,14 +305,106 @@
         `;
     }
 
-    function renderHand(str) {
+    function changeStep(room, delta) {
+        if (!currentBoardId) return;
+        const play = matchData.boards_detail[currentBoardId][room].meta.Play;
+        const newCursor = Math.max(0, Math.min(play.length, cursors[room] + delta));
+        if (newCursor !== cursors[room]) {
+            cursors[room] = newCursor;
+            renderContent(currentBoardId);
+        }
+    }
+
+    function checkError(room, boardId, cursor) {
+        if (cursor === 0) return;
+        const crits = matchData.boards_detail[boardId][room].meta.Critical_Plays;
+        const error = crits.find(p => p.idx === (cursor - 1));
+        setTimeout(() => {
+            const toast = document.getElementById(`toast-${room}`);
+            if (error && error.points < 0) {
+                toast.textContent = `¡ERROR DE ${error.player_pos.toUpperCase()}! COSTE: ${error.points} PTS`;
+                toast.style.display = 'block';
+            } else {
+                toast.style.display = 'none';
+            }
+        }, 50);
+    }
+
+    function renderHand(str, played) {
         const clean = str.replace(/[NESW]:/g, '').replace(/\s+/g, '');
         const suits = clean.split('.');
         const syms = ['&spades;', '&hearts;', '&diams;', '&clubs;'];
         const clss = ['suit-spade', 'suit-heart', 'suit-diamond', 'suit-club'];
+        // Mapping for detection in 'played'
+        const suitChars = ['S', 'H', 'D', 'C'];
+        const suitSyms = ['♠', '♥', '♦', '♣'];
+        
         return suits.map((c, i) => {
-            return `<div class="flex items-center gap-3 font-mono text-[15px] leading-tight py-1"><span class="${clss[i]} w-5 text-center font-black">${syms[i]}</span><span class="text-slate-100 font-black tracking-[0.2em]">${c || '—'}</span></div>`;
+            const cards = c.split('');
+            const rem = cards.filter(r => {
+                const rank = r === 'T' ? '10' : r;
+                const cardChar = suitChars[i] + rank;
+                const cardSym = suitSyms[i] + (r === 'T' ? '10' : r); // endplay uses T
+                // Also check for ♣T format
+                const cardSymT = suitSyms[i] + r;
+                return !played.includes(cardChar) && !played.includes(cardSym) && !played.includes(cardSymT);
+            }).join('');
+            return `<div class="flex items-center gap-3 font-mono text-[15px] leading-tight py-1"><span class="${clss[i]} w-5 text-center font-black">${syms[i]}</span><span class="${rem?'text-slate-100':'opacity-10'} font-black tracking-[0.2em]">${rem || '—'}</span></div>`;
         }).join('');
+    }
+
+    function getTrickCard(id, room, pos) {
+        const c = cursors[room]; if (c === 0) return '';
+        const play = matchData.boards_detail[id][room].meta.Play;
+        const currentTrickIdx = Math.floor((c - 1) / 4);
+        const start = currentTrickIdx * 4;
+        const trick = play.slice(start, c);
+        
+        for (let i = 0; i < trick.length; i++) {
+            const card = trick[i];
+            if (getOwner(id, room, card) === pos) {
+                const isLast = (start + i) === (c - 1);
+                return renderCard(card, isLast);
+            }
+        }
+        return '';
+    }
+
+    function getOwner(id, room, card) {
+        const hands = matchData.boards_detail[id][room].meta.Manos;
+        const sChar = card[0]; 
+        let r = card.slice(1);
+        
+        const suitMap = {
+            'S':0, 'H':1, 'D':2, 'C':3,
+            '♠':0, '♥':1, '♦':2, '♣':3
+        };
+        const sIdx = suitMap[sChar];
+        if (sIdx === undefined) return null;
+
+        for (const [pos, hand] of Object.entries(hands)) {
+            const clean = hand.replace(/[NESW]:/g, '').replace(/\s+/g, '');
+            const parts = clean.split('.');
+            if (parts[sIdx] && parts[sIdx].includes(r)) return pos;
+        }
+        return null;
+    }
+
+    function renderCard(c, highlight = false) {
+        const s = c[0]; 
+        let r = c.slice(1);
+        
+        const suitCls = {
+            'S':'suit-spade', 'H':'suit-heart', 'D':'suit-diamond', 'C':'suit-club',
+            '♠':'suit-spade', '♥':'suit-heart', '♦':'suit-diamond', '♣':'suit-club'
+        }[s];
+        const suitSym = {
+            'S':'&spades;', 'H':'&hearts;', 'D':'&diams;', 'C':'&clubs;',
+            '♠':'&spades;', '♥':'&hearts;', '♦':'&diams;', '♣':'&clubs;'
+        }[s];
+        
+        const highlightCls = highlight ? 'ring-4 ring-blue-500 ring-offset-2 ring-offset-slate-900 scale-125 z-30' : '';
+        return `<div class="card-visual ${suitCls} ${highlightCls} border-white/40 shadow-2xl">${suitSym}${r}</div>`;
     }
 
     function renderTeam(tname, detail, teamVal) {
@@ -261,6 +435,36 @@
         `;
     }
 
+    function formatBid(bid) {
+        if (!bid) return '';
+        // Remove notes like =1=, ! (alert), etc.
+        const cleanBid = bid.split('=')[0].split('!')[0].trim().toUpperCase();
+        
+        // Match Pass/Dbl/Redbl
+        if (/^(P|PASS|PASO|AP)$/.test(cleanBid)) return `<span class="bid-pass">PASS</span>`;
+        if (/^(X|DBL|DOBLO|D)$/.test(cleanBid)) return `<span class="bid-special">X</span>`;
+        if (/^(XX|RDBL|REDOBLO|RD)$/.test(cleanBid)) return `<span class="bid-special">XX</span>`;
+        
+        // Regex for Level + Suit (e.g., 1S, 3NT, 4♣, 2N)
+        const match = cleanBid.match(/^([1-7])\s*(NT|SA|N|S|H|D|C|♠|♥|♦|♣)$/);
+        if (!match) return bid; // Return original if no match
+        
+        const level = match[1];
+        const suit = match[2];
+        
+        const suitMap = {
+            'S': { sym: '♠', cls: 'bid-spade' }, '♠': { sym: '♠', cls: 'bid-spade' },
+            'H': { sym: '♥', cls: 'bid-heart' }, '♥': { sym: '♥', cls: 'bid-heart' },
+            'D': { sym: '♦', cls: 'bid-diamond' }, '♦': { sym: '♦', cls: 'bid-diamond' },
+            'C': { sym: '♣', cls: 'bid-club' }, '♣': { sym: '♣', cls: 'bid-club' },
+            'NT': { sym: 'NT', cls: 'bid-nt' }, 'SA': { sym: 'NT', cls: 'bid-nt' }, 'N': { sym: 'NT', cls: 'bid-nt' }
+        };
+        
+        const info = suitMap[suit];
+        if (!info) return bid;
+        return `${level}<span class="${info.cls} ml-0.5">${info.sym}</span>`;
+    }
+
     function formatAuction(str, dealer) {
         if (!str) return '';
         const bids = str.split(' - ');
@@ -268,7 +472,9 @@
         let idx = order.indexOf(dealer);
         const grid = [];
         for (let i = 0; i < idx; i++) grid.push('<div class="opacity-0">.</div>');
-        bids.forEach(b => grid.push(`<div class="text-center font-mono text-[12px] py-2.5 rounded-2xl bg-slate-800 text-white border border-white/10 font-black shadow-lg">${b}</div>`));
+        bids.forEach(b => {
+            grid.push(`<div class="text-center font-mono text-[13px] py-2 rounded-xl bg-slate-800 text-white border border-white/5 font-black shadow-lg">${formatBid(b)}</div>`);
+        });
         return grid.join('');
     }
 
