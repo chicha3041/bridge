@@ -6,6 +6,12 @@ from endplay.dds import par as calc_par, solve_board, calc_dd_table
 from endplay.types import Player, Contract, Denom, Penalty, Vul, PenaltyBid
 from tabulate import tabulate
 import pandas as pd
+import gc
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("BridgeLab")
 
 def calculate_bridge_score(contract, tricks_taken, is_vul):
     """Robust Duplicate Bridge scoring function."""
@@ -93,21 +99,21 @@ class BridgeAnalyzer:
         self.match_gross_gain = {'Equipo A': 0, 'Equipo B': 0}
 
     def get_player_name(self, board, player_role):
+        # INTERNAL PBN KEYS MUST BE ENGLISH
         role_map = {Player.north: "North", Player.east: "East", Player.south: "South", Player.west: "West"}
         name = board.info.get(role_map[player_role]) or role_map[player_role]
         return name.strip()
 
     def ensure_player_exists(self, name):
         if name and name not in self.players_data:
-            # print(f"Adding player: '{name}'")
             self.players_data[name] = {'bidding': {}, 'play': {}, 'imps': {}}
 
     def analyze_deal(self, board, room_name="Unknown"):
         board_num = board.board_num or 1
         self.active_boards.add(board_num)
-        if board_num not in self.boards_detail: 
-            self.boards_detail[board_num] = {'imps_summary': {}}
+        if board_num not in self.boards_detail: self.boards_detail[board_num] = {'imps_summary': {}}
         
+        # DDS Analysis: Full 13 tricks for local power
         dd_table = calc_dd_table(board.deal)
         par_list = calc_par(dd_table, board.vul, board.dealer)
         par_score = par_list.score
@@ -121,29 +127,21 @@ class BridgeAnalyzer:
             actual_ns = sc if board.contract.declarer in [Player.north, Player.south] else -sc
             bid_res, play_res, play_err, comm, bid_math, crit_plays = self._perform_full_analysis(board, dd_table, par_score)
         
-        # Explicitly map vulnerability name for frontend using the .name property
         vul_name = board.vul.name.lower()
-        if vul_name == 'none': vul_name = 'nadie'
-        elif vul_name == 'both': vul_name = 'todos'
-        elif vul_name == 'ns': vul_name = 'norte/sur'
-        elif vul_name == 'ew': vul_name = 'este/oeste'
+        v_map = {'none':'nadie', 'both':'todos', 'ns':'norte/sur', 'ew':'este/oeste'}
+        vul_name = v_map.get(vul_name, vul_name)
 
         room_meta = {
             'Sala': room_name,
             'Subasta Real': ' - '.join(str(bid) for bid in board.auction),
             'Contrato Final': str(board.contract) if board.contract else "Paso",
             'Puntos Reales (NS)': actual_ns,
-            'Par Contrato': str(list(par_list)[0]),
+            'Par Contrato': str(list(par_list)[0]) if par_list else "Pass",
             'Par Puntos (NS)': par_score,
             'Comentarios': comm,
-            'Manos': {
-                'N': str(board.deal.north),
-                'E': str(board.deal.east),
-                'S': str(board.deal.south),
-                'W': str(board.deal.west)
-            },
+            'Manos': {p.name[0].upper(): str(board.deal[p]) for p in Player},
             'Vulnerabilidad': vul_name,
-            'Dador': str(board.dealer.name).upper(),
+            'Dador': board.dealer.name.upper(),
             'Play': [str(c) for c in board.play] if board.play else [],
             'Critical_Plays': crit_plays
         }
@@ -153,55 +151,41 @@ class BridgeAnalyzer:
             name = self.get_player_name(board, role)
             if not name: continue
             self.ensure_player_exists(name)
-            if room_name.lower() == "abierta":
-                if role in [Player.north, Player.south]: self.teams_roster['Equipo A'].add(name)
-                else: self.teams_roster['Equipo B'].add(name)
-            else:
-                if role in [Player.north, Player.south]: self.teams_roster['Equipo B'].add(name)
-                else: self.teams_roster['Equipo A'].add(name)
+            
+            is_a = (room_name.lower()=="abierta" and role in [Player.north, Player.south]) or \
+                   (room_name.lower()=="cerrada" and role in [Player.east, Player.west])
+            self.teams_roster['Equipo A' if is_a else 'Equipo B'].add(name)
 
             bp, pp = bid_res.get(role, 0), play_res.get(role, 0)
             self.players_data[name]['bidding'][board_num] = self.players_data[name]['bidding'].get(board_num, 0) + bp
             self.players_data[name]['play'][board_num] = self.players_data[name]['play'].get(board_num, 0) + pp
+            
             players_info.append({
-                'Jugador': name, 
-                'Pos': role.name.upper(), 
-                'Subasta': bp, 
-                'Carteo': pp, 
-                'Total': bp+pp, 
-                'Detalle_Carteo': play_err.get(role, ""),
-                'Subasta_Calculo': bid_math.get(role, ""),
-                'IMPs_Atribuidos': 0 
+                'Jugador': name, 'Pos': role.name.upper(), 'Subasta': bp, 'Carteo': pp, 
+                'Total': bp + pp, 'Detalle_Carteo': play_err.get(role, ""),
+                'Subasta_Calculo': bid_math.get(role, ""), 'IMPs_Atribuidos': 0, 'Sala': room_name
             })
 
         self.boards_detail[board_num][room_name] = {'meta': room_meta, 'players': players_info}
+        gc.collect()
 
     def _perform_full_analysis(self, board, dd_table, par_ns):
-        contract = board.contract; declarer = contract.declarer; dummy = declarer.partner
-        is_v = (board.vul == Vul.both) or (board.vul == Vul.ns and declarer in [Player.north, Player.south]) or (board.vul == Vul.ew and declarer in [Player.east, Player.west])
-        dd_tricks = dd_table[contract.denom, declarer]
+        contract = board.contract; decl = contract.declarer; dummy = decl.partner
+        is_v = (board.vul == Vul.both) or (board.vul == Vul.ns and decl in [Player.north, Player.south]) or (board.vul == Vul.ew and decl in [Player.east, Player.west])
+        dd_tricks = dd_table[contract.denom, decl]
         pot_decl = calculate_bridge_score(contract, dd_tricks, is_v)
-        pot_ns = pot_decl if declarer in [Player.north, Player.south] else -pot_decl
+        pot_ns = pot_decl if decl in [Player.north, Player.south] else -pot_decl
         diff_ns = pot_ns - par_ns
-        
-        denom_map = {Denom.clubs: "♣", Denom.diamonds: "♦", Denom.hearts: "♥", Denom.spades: "♠", Denom.nt: "NT"}
-        needed = contract.level + 6; res_diff = dd_tricks - needed
-        if res_diff == 0: res_label = "Cumplido (=)"
-        elif res_diff > 0: res_label = f"Cumplido con {res_diff} extra (+{res_diff})"
-        else: res_label = f"Con multa de {abs(res_diff)} ({res_diff})"
-        pot_desc = f"{contract.level}{denom_map.get(contract.denom, '')} {res_label} ({pot_decl} pts)"
         
         bid_res, bid_math, bidders, curr = {p:0 for p in Player}, {p:"" for p in Player}, set(), board.dealer
         for bid in board.auction:
             if str(bid).upper() not in ['P', 'PASS']: bidders.add(curr)
             curr = curr.next()
-        ns_b, ew_b = [p for p in [Player.north, Player.south] if p in bidders], [p for p in [Player.east, Player.west] if p in bidders]
-        for p in ns_b: 
-            bid_res[p] = diff_ns
-            bid_math[p] = f"Potencial {pot_desc} - Par ({par_ns}) = {diff_ns} pts"
-        for p in ew_b: 
-            bid_res[p] = -diff_ns
-            bid_math[p] = f"Potencial {pot_desc} - Par ({-par_ns}) = {-diff_ns} pts"
+        
+        for p in bidders:
+            is_ns = p in [Player.north, Player.south]
+            bid_res[p] = diff_ns if is_ns else -diff_ns
+            bid_math[p] = f"Potencial: {pot_decl} vs Par: {par_ns}"
             
         play_res, play_err, critical_plays = {p:0 for p in Player}, {p:[] for p in Player}, []
         if board.play:
@@ -210,24 +194,28 @@ class BridgeAnalyzer:
                 actor = d_p.curplayer; trick = (c_p // 4) + 1
                 try: d_p.play(card); c_p += 1
                 except: break
-                if len(d_p.curtrick) == 0 and d_p.first in [declarer, dummy]: t_won += 1
-                max_t = self._get_declarer_tricks_evaluation(d_p, declarer, t_won, c_p) if c_p < 52 else t_won
-                now_decl = calculate_bridge_score(contract, max_t, is_v); now_ns = now_decl if declarer in [Player.north, Player.south] else -now_decl
-                delta = now_ns - prev_ns; resp = actor if actor != dummy else declarer
+                if len(d_p.curtrick) == 0 and d_p.first in [decl, dummy]: t_won += 1
+                
+                # Safety check: No DDS calculation if all cards are played
+                if c_p < 52:
+                    solutions = solve_board(d_p)
+                    if not solutions: max_t = t_won
+                    else:
+                        best = max(m[1] for m in solutions)
+                        if d_p.curplayer in [decl, dummy]: max_t = t_won + best
+                        else: max_t = t_won + (13 - ((c_p - len(d_p.curtrick)) // 4) - best)
+                else:
+                    max_t = t_won
+                
+                now_decl = calculate_bridge_score(contract, max_t, is_v)
+                now_ns = now_decl if decl in [Player.north, Player.south] else -now_decl
+                delta = now_ns - prev_ns; resp = actor if actor != dummy else decl
                 if delta != 0:
-                    val = delta if actor in [Player.north, Player.south] else -delta
-                    play_res[resp] += val; play_err[resp].append(f"B{trick} ({'+' if val > 0 else ''}{val})")
-                    role_names = {Player.north: "North", Player.east: "East", Player.south: "South", Player.west: "West"}
-                    critical_plays.append({"idx": c_p-1, "player_pos": role_names[resp], "points": val})
+                    val = delta if resp in [Player.north, Player.south] else -delta
+                    play_res[resp] += val; play_err[resp].append(f"B{trick}({val})")
+                    critical_plays.append({"idx": c_p-1, "player_pos": resp.name.capitalize(), "points": val})
                 prev_ns = now_ns
-        return bid_res, play_res, {p: ", ".join(errors) for p, errors in play_err.items()}, "", bid_math, critical_plays
-
-    def _get_declarer_tricks_evaluation(self, deal, declarer, won, played):
-        solutions = solve_board(deal)
-        if not solutions: return won
-        best = max(m[1] for m in solutions)
-        if deal.curplayer in [declarer, declarer.partner]: return won + best
-        return won + (13 - ((played - len(deal.curtrick)) // 4) - best)
+        return bid_res, play_res, {p: ",".join(errs) for p, errs in play_err.items()}, "", bid_math, critical_plays
 
     def finalize_analysis(self):
         self.match_gross_gain = {'Equipo A': 0, 'Equipo B': 0}
@@ -239,7 +227,9 @@ class BridgeAnalyzer:
                 board_imps = get_imps(diff) * (1 if diff >= 0 else -1)
                 if board_imps > 0: self.match_gross_gain['Equipo A'] += board_imps
                 else: self.match_gross_gain['Equipo B'] += abs(board_imps)
+                
                 self.boards_detail[num]['imps_summary'] = {'diff_pts': diff, 'board_imps': board_imps, 'team_a_imps': board_imps, 'team_b_imps': -board_imps}
+                
                 team_imps_map = {'Equipo A': board_imps, 'Equipo B': -board_imps}
                 for tn in ['Equipo A', 'Equipo B']:
                     team_list = []
@@ -248,7 +238,11 @@ class BridgeAnalyzer:
                         for p in self.boards_detail[num][rn]['players']:
                             is_a = (rn=='Abierta' and p['Pos'] in ['NORTH','SOUTH']) or (rn=='Cerrada' and p['Pos'] in ['EAST','WEST'])
                             if (tn=='Equipo A' and is_a) or (tn=='Equipo B' and not is_a): team_list.append(p)
+                    
                     timps = team_imps_map[tn]
+                    if not team_list: continue
+                    
+                    # Restoration of the "perfect" proportional logic
                     orig_pts = [p['Total'] for p in team_list]
                     if timps > 0 and all(-100 <= v <= 100 for v in orig_pts):
                         calc_pts = [1, 1, 1, 1]
@@ -263,6 +257,7 @@ class BridgeAnalyzer:
                         share = calc_pts[i] / sum_calc if sum_calc != 0 else 0.25
                         attrs.append(round(timps * share, 2))
                     
+                    # Safety check for bounds
                     if timps > 0 and any(a > timps for a in attrs):
                         max_idx = attrs.index(max(attrs))
                         for i in range(len(attrs)): attrs[i] = float(timps) if i == max_idx else 0.0

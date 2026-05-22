@@ -6,7 +6,7 @@
 <title>BridgeLab | Hand Analysis</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap" rel="stylesheet"/>
 <style>
     body { background-color: #051424; color: #d4e4fa; font-family: 'Inter', sans-serif; overflow: hidden; height: 100vh; display: flex; }
     .suit-spade { color: #60a5fa; }
@@ -75,7 +75,7 @@
 
 <main class="main-content">
     <header class="h-16 border-b border-slate-800 px-8 flex items-center justify-between bg-slate-900/80 backdrop-blur-xl z-40">
-        <h2 class="text-sm font-black uppercase tracking-[0.3em] text-slate-400">Hand-by-Hand Analysis</h2>
+        <h2 class="text-sm font-black uppercase tracking-[0.3em] text-slate-400">Análisis Mano a Mano</h2>
         <div id="meta-header" class="flex gap-4"></div>
     </header>
 
@@ -149,12 +149,12 @@
     function renderContent(id) {
         const detail = matchData.boards_detail[id];
         const grid = document.getElementById('rooms-grid');
-        const imp = document.getElementById('imp-section');
+        const impSection = document.getElementById('imp-section');
         const header = document.getElementById('meta-header');
 
         if (!detail) return;
-        grid.innerHTML = '';
-
+        
+        let roomsHtml = '';
         ['Abierta', 'Cerrada'].forEach(room => {
             const data = detail[room];
             if (!data) return;
@@ -162,12 +162,10 @@
             const played = data.meta.Play.slice(0, c);
             const total = data.meta.Play.length;
 
-            grid.innerHTML += `
+            roomsHtml += `
                 <div class="bg-slate-900/50 p-8 rounded-[2.5rem] border border-slate-800/80 shadow-2xl relative">
                     <div class="absolute top-0 left-0 w-1.5 h-full ${room==='Abierta'?'bg-blue-500':'bg-amber-500'}"></div>
-                    
                     <div id="toast-${room}" class="error-toast"></div>
-
                     <div class="flex justify-between items-start mb-8">
                         <h3 class="text-2xl font-black uppercase tracking-tighter text-white italic border-l-4 border-blue-500 pl-4">${room} ROOM</h3>
                         <div class="flex gap-4 items-center">
@@ -182,111 +180,63 @@
                             </div>
                         </div>
                     </div>
-
                     <div class="grid grid-cols-3 grid-rows-3 gap-3 w-full max-w-sm mx-auto mb-10 aspect-square relative">
-                        <div class="col-start-2 row-start-1 hand-box">
-                            ${renderHand(data.meta.Manos.N, played)}
-                            <div class="text-[8px] text-center opacity-20 font-black mt-2">NORTH</div>
-                        </div>
-                        <div class="col-start-1 row-start-2 hand-box">
-                            ${renderHand(data.meta.Manos.W, played)}
-                            <div class="text-[8px] text-center opacity-20 font-black mt-2">WEST</div>
-                        </div>
-                        
-                        <!-- TRICK CENTER -->
+                        <div class="col-start-2 row-start-1 hand-box">${renderHand(data.meta.Manos.N, played)}<div class="text-[8px] text-center opacity-20 font-black mt-2">NORTH</div></div>
+                        <div class="col-start-1 row-start-2 hand-box">${renderHand(data.meta.Manos.W, played)}<div class="text-[8px] text-center opacity-20 font-black mt-2">WEST</div></div>
                         <div class="col-start-2 row-start-2 trick-center-box grid grid-cols-3 grid-rows-3 p-1">
                             <div class="col-start-2 row-start-1 flex justify-center items-center z-10">${getTrickCard(id, room, 'N')}</div>
                             <div class="col-start-1 row-start-2 flex justify-center items-center z-10">${getTrickCard(id, room, 'W')}</div>
                             <div class="col-start-3 row-start-2 flex justify-center items-center z-10">${getTrickCard(id, room, 'E')}</div>
                             <div class="col-start-2 row-start-3 flex justify-center items-center z-10">${getTrickCard(id, room, 'S')}</div>
                         </div>
-
-                        <div class="col-start-3 row-start-2 hand-box">
-                            ${renderHand(data.meta.Manos.E, played)}
-                            <div class="text-[8px] text-center opacity-20 font-black mt-2">EAST</div>
-                        </div>
-                        
-                        <!-- SOUTH HAND: Alineado al inicio de su fila para subirlo -->
-                        <div class="col-start-2 row-start-3 hand-box self-start">
-                            ${renderHand(data.meta.Manos.S, played)}
-                            <div class="text-[8px] text-center opacity-20 font-black mt-2">SOUTH</div>
-                        </div>
+                        <div class="col-start-3 row-start-2 hand-box">${renderHand(data.meta.Manos.E, played)}<div class="text-[8px] text-center opacity-20 font-black mt-2">EAST</div></div>
+                        <div class="col-start-2 row-start-3 hand-box self-start">${renderHand(data.meta.Manos.S, played)}<div class="text-[8px] text-center opacity-20 font-black mt-2">SOUTH</div></div>
                     </div>
-
-                    <!-- SIMPLIFIED CONTROLS -->
                     <div class="flex items-center justify-center gap-6 mb-10 bg-slate-950/60 p-5 rounded-[2rem] border border-white/5 shadow-inner">
-                        <button onclick="changeStep('${room}', -1)" class="nav-btn">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                            Retroceder
-                        </button>
-                        <div class="text-center min-w-[120px]">
-                            <div class="text-[10px] font-black opacity-30 uppercase tracking-widest mb-1">CARTA</div>
-                            <div class="font-mono text-lg font-black text-blue-400 leading-none">${c} / ${total}</div>
-                        </div>
-                        <button onclick="changeStep('${room}', 1)" class="nav-btn">
-                            Avanzar
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                        </button>
+                        <button onclick="changeStep('${room}', -1)" class="nav-btn"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>Retroceder</button>
+                        <div class="text-center min-w-[120px]"><div class="text-[10px] font-black opacity-30 uppercase tracking-widest mb-1">CARTA</div><div class="font-mono text-lg font-black text-blue-400 leading-none">${c} / ${total}</div></div>
+                        <button onclick="changeStep('${room}', 1)" class="nav-btn">Avanzar<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg></button>
                     </div>
-
                     <div class="mb-10">
                         <div class="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 mb-4 ml-1">Secuencia de Subasta</div>
                         <div class="bg-slate-950/60 rounded-[1.5rem] border border-slate-800 overflow-hidden shadow-inner p-4">
-                            <div class="grid grid-cols-4 border-b border-slate-800/50 text-[10px] font-black text-slate-500 text-center pb-3 mb-3 tracking-widest">
-                                <div>OESTE</div><div>NORTE</div><div>ESTE</div><div>SUR</div>
-                            </div>
-                            <div class="grid grid-cols-4 gap-2">
-                                ${formatAuction(data.meta['Subasta Real'], data.meta['Dador'])}
-                            </div>
+                            <div class="grid grid-cols-4 border-b border-slate-800/50 text-[10px] font-black text-slate-500 text-center pb-3 mb-3 tracking-widest"><div>OESTE</div><div>NORTE</div><div>ESTE</div><div>SUR</div></div>
+                            <div class="grid grid-cols-4 gap-2">${formatAuction(data.meta['Subasta Real'], data.meta['Dador'])}</div>
                         </div>
                     </div>
-
                     <table class="w-full text-xs">
                         <thead><tr class="opacity-20 uppercase font-black border-b border-slate-800"><th class="py-2 text-left">Jugador</th><th class="text-right">Subasta</th><th class="text-right">Carteo</th><th class="text-right font-black">Total</th></tr></thead>
-                        <tbody class="divide-y divide-slate-800/50">
-                            ${data.players.map(p => `
+                        <tbody class="divide-y divide-slate-800/50">${data.players.map(p => `
                                 <tr>
                                     <td class="py-5 font-black text-slate-200">${p.Jugador} <span class="opacity-30 text-[9px] font-normal uppercase ml-2">${p.Pos}</span></td>
                                     <td class="text-right font-mono font-bold ${p.Subasta<0?'text-red-400/80':'text-green-400/80'}">${p.Subasta}</td>
                                     <td class="text-right font-mono font-bold ${p.Carteo<0?'text-red-400/80':'text-green-400/80'}">${p.Carteo}</td>
                                     <td class="text-right font-mono font-black text-white text-lg">${p.Total}</td>
                                 </tr>
-                                ${p.Subasta_Calculo ? `<tr><td colspan="4" class="pb-3 pt-0">
-                                    <div class="bg-blue-500/5 rounded-lg p-3 border border-blue-500/10 text-[10px] text-blue-300/70 italic leading-relaxed">
-                                        <span class="font-black text-blue-400/60 mr-2 uppercase not-italic">Subasta:</span>${p.Subasta_Calculo}
-                                    </div>
-                                </td></tr>` : ''}
-                                ${p.Detalle_Carteo ? `<tr><td colspan="4" class="pb-5 pt-0">
-                                    <div class="bg-red-500/5 rounded-lg p-3 border border-red-500/10 text-[10px] text-red-300/70 italic leading-relaxed">
-                                        <span class="font-black text-red-400/60 mr-2 uppercase not-italic">Carteo:</span>${p.Detalle_Carteo}
-                                    </div>
-                                </td></tr>` : ''}
-                            `).join('')}
-                        </tbody>
+                                ${p.Subasta_Calculo?`<tr><td colspan="4" class="pb-3 pt-0"><div class="bg-blue-500/5 rounded-lg p-3 border border-blue-500/10 text-[10px] text-blue-300/70 italic leading-relaxed"><span class="font-black text-blue-400/60 mr-2 uppercase not-italic">Subasta:</span>${p.Subasta_Calculo}</div></td></tr>`:''}
+                                ${p.Detalle_Carteo?`<tr><td colspan="4" class="pb-5 pt-0"><div class="bg-red-500/5 rounded-lg p-3 border border-red-500/10 text-[10px] text-red-300/70 italic leading-relaxed"><span class="font-black text-red-400/60 mr-2 uppercase not-italic">Carteo:</span>${p.Detalle_Carteo}</div></td></tr>`:''}
+                            `).join('')}</tbody>
                     </table>
                 </div>
             `;
-            checkError(room, id, c);
         });
-
-        const imps = detail.imps_summary;
-        if (imps) {
-            imp.innerHTML = `
-                <div class="bg-slate-950 border border-slate-700 rounded-[3rem] overflow-hidden shadow-2xl mt-16 ring-1 ring-white/5">
-                    <div class="p-12 border-b border-slate-700 flex justify-between items-center bg-gradient-to-r from-slate-900 to-slate-950">
-                        <h4 class="text-4xl font-black tracking-tighter text-blue-500 uppercase italic">Resultado Mano</h4>
-                        <div class="text-right">
-                            <div class="text-6xl font-mono font-black text-white leading-none">${imps.board_imps >= 0 ? '+' : ''}${imps.board_imps}</div>
-                            <div class="text-[11px] font-black opacity-30 uppercase tracking-[0.4em] mt-4">Total IMPs Neto</div>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 divide-x divide-slate-800">
-                        ${renderTeam('Equipo A', detail, imps.team_a_imps)}
-                        ${renderTeam('Equipo B', detail, imps.team_b_imps)}
+        
+        grid.innerHTML = roomsHtml;
+        impSection.innerHTML = detail.imps_summary ? `
+            <div class="bg-slate-950 border border-slate-700 rounded-[3rem] overflow-hidden shadow-2xl mt-16 ring-1 ring-white/5">
+                <div class="p-12 border-b border-slate-700 flex justify-between items-center bg-gradient-to-r from-slate-900 to-slate-950">
+                    <h4 class="text-4xl font-black tracking-tighter text-blue-500 uppercase italic">Resultado Mano</h4>
+                    <div class="text-right">
+                        <div class="text-6xl font-mono font-black text-white leading-none">${detail.imps_summary.board_imps >= 0 ? '+' : ''}${detail.imps_summary.board_imps}</div>
+                        <div class="text-[11px] font-black opacity-30 uppercase tracking-[0.4em] mt-4">Total IMPs Neto</div>
                     </div>
                 </div>
-            `;
-        }
+                <div class="grid grid-cols-2 divide-x divide-slate-800">
+                    ${renderTeam('Equipo A', detail, detail.imps_summary.team_a_imps)}
+                    ${renderTeam('Equipo B', detail, detail.imps_summary.team_b_imps)}
+                </div>
+            </div>
+        ` : '';
 
         const roomMeta = detail['Abierta'] ? detail['Abierta'].meta : detail['Cerrada'].meta;
         const spanishVul = vulMap[roomMeta.Vulnerabilidad] || roomMeta.Vulnerabilidad;
@@ -303,6 +253,7 @@
                 </div>
             </div>
         `;
+        ['Abierta', 'Cerrada'].forEach(room => checkError(room, id, cursors[room]));
     }
 
     function changeStep(room, delta) {
@@ -318,13 +269,14 @@
     function checkError(room, boardId, cursor) {
         if (cursor === 0) return;
         const crits = matchData.boards_detail[boardId][room].meta.Critical_Plays;
+        if (!crits) return;
         const error = crits.find(p => p.idx === (cursor - 1));
         setTimeout(() => {
             const toast = document.getElementById(`toast-${room}`);
-            if (error && error.points < 0) {
+            if (toast && error && error.points < 0) {
                 toast.textContent = `¡ERROR DE ${error.player_pos.toUpperCase()}! COSTE: ${error.points} PTS`;
                 toast.style.display = 'block';
-            } else {
+            } else if (toast) {
                 toast.style.display = 'none';
             }
         }, 50);
@@ -335,7 +287,6 @@
         const suits = clean.split('.');
         const syms = ['&spades;', '&hearts;', '&diams;', '&clubs;'];
         const clss = ['suit-spade', 'suit-heart', 'suit-diamond', 'suit-club'];
-        // Mapping for detection in 'played'
         const suitChars = ['S', 'H', 'D', 'C'];
         const suitSyms = ['♠', '♥', '♦', '♣'];
         
@@ -344,8 +295,7 @@
             const rem = cards.filter(r => {
                 const rank = r === 'T' ? '10' : r;
                 const cardChar = suitChars[i] + rank;
-                const cardSym = suitSyms[i] + (r === 'T' ? '10' : r); // endplay uses T
-                // Also check for ♣T format
+                const cardSym = suitSyms[i] + (r === 'T' ? '10' : r);
                 const cardSymT = suitSyms[i] + r;
                 return !played.includes(cardChar) && !played.includes(cardSym) && !played.includes(cardSymT);
             }).join('');
@@ -359,13 +309,9 @@
         const currentTrickIdx = Math.floor((c - 1) / 4);
         const start = currentTrickIdx * 4;
         const trick = play.slice(start, c);
-        
         for (let i = 0; i < trick.length; i++) {
             const card = trick[i];
-            if (getOwner(id, room, card) === pos) {
-                const isLast = (start + i) === (c - 1);
-                return renderCard(card, isLast);
-            }
+            if (getOwner(id, room, card) === pos) return renderCard(card, (start + i) === (c - 1));
         }
         return '';
     }
@@ -373,15 +319,10 @@
     function getOwner(id, room, card) {
         const hands = matchData.boards_detail[id][room].meta.Manos;
         const sChar = card[0]; 
-        let r = card.slice(1);
-        
-        const suitMap = {
-            'S':0, 'H':1, 'D':2, 'C':3,
-            '♠':0, '♥':1, '♦':2, '♣':3
-        };
+        const suitMap = { 'S':0, 'H':1, 'D':2, 'C':3, '♠':0, '♥':1, '♦':2, '♣':3 };
         const sIdx = suitMap[sChar];
         if (sIdx === undefined) return null;
-
+        let r = card.slice(1);
         for (const [pos, hand] of Object.entries(hands)) {
             const clean = hand.replace(/[NESW]:/g, '').replace(/\s+/g, '');
             const parts = clean.split('.');
@@ -392,17 +333,9 @@
 
     function renderCard(c, highlight = false) {
         const s = c[0]; 
-        let r = c.slice(1);
-        
-        const suitCls = {
-            'S':'suit-spade', 'H':'suit-heart', 'D':'suit-diamond', 'C':'suit-club',
-            '♠':'suit-spade', '♥':'suit-heart', '♦':'suit-diamond', '♣':'suit-club'
-        }[s];
-        const suitSym = {
-            'S':'&spades;', 'H':'&hearts;', 'D':'&diams;', 'C':'&clubs;',
-            '♠':'&spades;', '♥':'&hearts;', '♦':'&diams;', '♣':'&clubs;'
-        }[s];
-        
+        const suitCls = { 'S':'suit-spade', 'H':'suit-heart', 'D':'suit-diamond', 'C':'suit-club', '♠':'suit-spade', '♥':'suit-heart', '♦':'suit-diamond', '♣':'suit-club' }[s];
+        const suitSym = { 'S':'&spades;', 'H':'&hearts;', 'D':'&diams;', 'C':'&clubs;', '♠':'&spades;', '♥':'&hearts;', '♦':'&diams;', '♣':'&clubs;' }[s];
+        const r = c.slice(1);
         const highlightCls = highlight ? 'ring-4 ring-blue-500 ring-offset-2 ring-offset-slate-900 scale-125 z-30' : '';
         return `<div class="card-visual ${suitCls} ${highlightCls} border-white/40 shadow-2xl">${suitSym}${r}</div>`;
     }
@@ -410,59 +343,41 @@
     function renderTeam(tname, detail, teamVal) {
         const ps = [];
         ['Abierta', 'Cerrada'].forEach(rn => {
-            if (!detail[rn]) return;
-            detail[rn].players.forEach(p => {
+            if (detail[rn]) detail[rn].players.forEach(p => {
                 const is_a = (rn==='Abierta' && (p.Pos==='NORTH'||p.Pos==='SOUTH')) || (rn==='Cerrada' && (p.Pos==='EAST'||p.Pos==='WEST'));
                 if ((tname==='Equipo A' && is_a) || (tname==='Equipo B' && !is_a)) ps.push(p);
             });
         });
         return `
-            <div class="p-12 space-y-7">
-                <div class="flex justify-between items-center mb-8 border-b border-white/5 pb-6">
-                    <span class="text-xs font-black opacity-30 uppercase tracking-[0.5em]">${tname}</span>
-                    <span class="text-4xl font-mono font-black ${teamVal>=0?'text-blue-500':'text-red-500'} italic">${teamVal>=0?'+':''}${teamVal}</span>
+            <div class="p-8">
+                <div class="flex justify-between items-center mb-8">
+                    <span class="text-xs font-black uppercase tracking-[0.3em] text-slate-500">${tname}</span>
+                    <span class="px-4 py-1 bg-blue-600/20 border border-blue-500/30 rounded-full text-blue-400 text-[10px] font-black uppercase tracking-widest">${teamVal.toFixed(1)} IMPs</span>
                 </div>
-                ${ps.map(p => `
-                    <div class="flex justify-between items-center bg-slate-900 border border-white/5 p-7 rounded-[2rem] shadow-xl transition-all hover:translate-x-2">
-                        <div>
-                            <div class="font-black text-slate-100 text-lg">${p.Jugador}</div>
-                            <div class="opacity-30 uppercase text-[10px] font-black mt-2 tracking-widest">${p.Pos} • ${p.Total} pts</div>
+                <div class="space-y-4">
+                    ${ps.map(p => `
+                        <div class="flex justify-between items-center p-4 bg-slate-900/40 rounded-2xl border border-white/5">
+                            <div><div class="text-white font-black text-xs italic">${p.Jugador}</div><div class="text-[8px] font-bold text-slate-600 uppercase tracking-widest mt-1">${p.Pos} en ${p.Sala}</div></div>
+                            <div class="text-right"><div class="text-lg font-mono font-black ${p.IMPs_Atribuidos<0?'text-red-500':'text-blue-400'}">${p.IMPs_Atribuidos.toFixed(1)}</div><div class="text-[8px] font-black text-blue-500/40 uppercase tracking-tighter">IMPs</div></div>
                         </div>
-                        <div class="font-mono text-3xl font-black ${p.IMPs_Atribuidos>=0?'text-blue-400':'text-red-400'}">${p.IMPs_Atribuidos>=0?'+':''}${p.IMPs_Atribuidos}</div>
-                    </div>
-                `).join('')}
+                    `).join('')}
+                </div>
             </div>
         `;
     }
 
     function formatBid(bid) {
         if (!bid) return '';
-        // Remove notes like =1=, ! (alert), etc.
         const cleanBid = bid.split('=')[0].split('!')[0].trim().toUpperCase();
-        
-        // Match Pass/Dbl/Redbl
         if (/^(P|PASS|PASO|AP)$/.test(cleanBid)) return `<span class="bid-pass">PASS</span>`;
         if (/^(X|DBL|DOBLO|D)$/.test(cleanBid)) return `<span class="bid-special">X</span>`;
         if (/^(XX|RDBL|REDOBLO|RD)$/.test(cleanBid)) return `<span class="bid-special">XX</span>`;
-        
-        // Regex for Level + Suit (e.g., 1S, 3NT, 4♣, 2N)
         const match = cleanBid.match(/^([1-7])\s*(NT|SA|N|S|H|D|C|♠|♥|♦|♣)$/);
-        if (!match) return bid; // Return original if no match
-        
-        const level = match[1];
-        const suit = match[2];
-        
-        const suitMap = {
-            'S': { sym: '♠', cls: 'bid-spade' }, '♠': { sym: '♠', cls: 'bid-spade' },
-            'H': { sym: '♥', cls: 'bid-heart' }, '♥': { sym: '♥', cls: 'bid-heart' },
-            'D': { sym: '♦', cls: 'bid-diamond' }, '♦': { sym: '♦', cls: 'bid-diamond' },
-            'C': { sym: '♣', cls: 'bid-club' }, '♣': { sym: '♣', cls: 'bid-club' },
-            'NT': { sym: 'NT', cls: 'bid-nt' }, 'SA': { sym: 'NT', cls: 'bid-nt' }, 'N': { sym: 'NT', cls: 'bid-nt' }
-        };
-        
-        const info = suitMap[suit];
+        if (!match) return bid;
+        const suitMap = { 'S': { sym: '♠', cls: 'bid-spade' }, '♠': { sym: '♠', cls: 'bid-spade' }, 'H': { sym: '♥', cls: 'bid-heart' }, '♥': { sym: '♥', cls: 'bid-heart' }, 'D': { sym: '♦', cls: 'bid-diamond' }, '♦': { sym: '♦', cls: 'bid-diamond' }, 'C': { sym: '♣', cls: 'bid-club' }, '♣': { sym: '♣', cls: 'bid-club' }, 'NT': { sym: 'NT', cls: 'bid-nt' }, 'SA': { sym: 'NT', cls: 'bid-nt' }, 'N': { sym: 'NT', cls: 'bid-nt' } };
+        const info = suitMap[match[2]];
         if (!info) return bid;
-        return `${level}<span class="${info.cls} ml-0.5">${info.sym}</span>`;
+        return `${match[1]}<span class="${info.cls} ml-0.5">${info.sym}</span>`;
     }
 
     function formatAuction(str, dealer) {
@@ -472,9 +387,7 @@
         let idx = order.indexOf(dealer);
         const grid = [];
         for (let i = 0; i < idx; i++) grid.push('<div class="opacity-0">.</div>');
-        bids.forEach(b => {
-            grid.push(`<div class="text-center font-mono text-[13px] py-2 rounded-xl bg-slate-800 text-white border border-white/5 font-black shadow-lg">${formatBid(b)}</div>`);
-        });
+        bids.forEach(b => grid.push(`<div class="text-center font-mono text-[13px] py-2 rounded-xl bg-slate-800 text-white border border-white/5 font-black shadow-lg">${formatBid(b)}</div>`));
         return grid.join('');
     }
 
