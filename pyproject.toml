@@ -14,3 +14,8 @@ dependencies = [
     "tabulate>=0.10.0",
     "uvicorn>=0.47.0",
 ]
+
+[tool.uv.workspace]
+members = [
+    "calculo-pension",
+]
